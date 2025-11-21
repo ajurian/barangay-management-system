@@ -1,10 +1,12 @@
 package com.barangay.application.services;
 
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
@@ -12,6 +14,10 @@ import com.itextpdf.layout.properties.UnitValue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -24,6 +30,7 @@ import java.util.Objects;
 public class AppointmentSlipGenerator {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
+    private static final float SEAL_MAX_SIZE_POINTS = 105f; // ~1.5 inches at 72 DPI
 
     public byte[] generate(AppointmentSlipData data) {
         Objects.requireNonNull(data, "Appointment slip data is required");
@@ -44,6 +51,14 @@ public class AppointmentSlipGenerator {
     }
 
     private void addHeader(Document document, AppointmentSlipData data) {
+        Image seal = loadBarangaySeal(data.getBarangaySealPath());
+        if (seal != null) {
+            seal.scaleToFit(SEAL_MAX_SIZE_POINTS, SEAL_MAX_SIZE_POINTS);
+            seal.setMarginBottom(8);
+            Paragraph sealWrapper = new Paragraph().setTextAlignment(TextAlignment.CENTER);
+            sealWrapper.add(seal);
+            document.add(sealWrapper);
+        }
         document.add(new Paragraph(safeValue(data.getBarangayName(), "Barangay Management Office"))
                 .setTextAlignment(TextAlignment.CENTER)
                 .setBold()
@@ -75,6 +90,68 @@ public class AppointmentSlipGenerator {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(15)
                 .setBold());
+    }
+
+    private Image loadBarangaySeal(String sealPath) {
+        if (sealPath == null) {
+            return null;
+        }
+        String normalized = sealPath.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        Image fileImage = tryLoadFromFile(normalized);
+        if (fileImage != null) {
+            return fileImage;
+        }
+
+        Image image = tryLoadImage(normalized);
+        if (image == null && !normalized.startsWith("/")) {
+            image = tryLoadImage("/" + normalized);
+        }
+        if (image == null && normalized.startsWith("/")) {
+            image = tryLoadImage(normalized.substring(1));
+        }
+        return image;
+    }
+
+    private Image tryLoadFromFile(String pathValue) {
+        try {
+            Path path = Path.of(pathValue);
+            if (!Files.exists(path)) {
+                return null;
+            }
+            return new Image(ImageDataFactory.create(path.toAbsolutePath().toString()));
+        } catch (InvalidPathException | IOException ex) {
+            return null;
+        }
+    }
+
+    private Image tryLoadImage(String resourcePath) {
+        if (resourcePath == null || resourcePath.isEmpty()) {
+            return null;
+        }
+        InputStream stream = AppointmentSlipGenerator.class.getResourceAsStream(resourcePath);
+        if (stream == null) {
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            if (loader == null) {
+                loader = AppointmentSlipGenerator.class.getClassLoader();
+            }
+            if (loader != null) {
+                String trimmed = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
+                stream = loader.getResourceAsStream(trimmed);
+            }
+        }
+        if (stream == null) {
+            return null;
+        }
+        try (InputStream ignored = stream) {
+            byte[] imageBytes = stream.readAllBytes();
+            return new Image(ImageDataFactory.create(imageBytes));
+        } catch (IOException ex) {
+            return null;
+        }
     }
 
     private void addApplicantSection(Document document, AppointmentSlipData data) {
@@ -132,6 +209,7 @@ public class AppointmentSlipGenerator {
         private final String barangayAddress;
         private final String barangayContact;
         private final String barangayEmail;
+        private final String barangaySealPath;
         private final String applicationId;
         private final String applicationType;
         private final String residentId;
@@ -144,7 +222,8 @@ public class AppointmentSlipGenerator {
         private final List<String> reminders;
 
         public AppointmentSlipData(String barangayName, String barangayAddress, String barangayContact,
-                String barangayEmail, String applicationId, String applicationType, String residentId,
+                String barangayEmail, String barangaySealPath, String applicationId, String applicationType,
+                String residentId,
                 String applicantName, String applicantContact, String applicantAddress,
                 LocalDateTime appointmentDateTime, String appointmentVenue, String slipReference,
                 List<String> reminders) {
@@ -152,6 +231,7 @@ public class AppointmentSlipGenerator {
             this.barangayAddress = barangayAddress;
             this.barangayContact = barangayContact;
             this.barangayEmail = barangayEmail;
+            this.barangaySealPath = barangaySealPath;
             this.applicationId = applicationId;
             this.applicationType = applicationType;
             this.residentId = residentId;
@@ -178,6 +258,10 @@ public class AppointmentSlipGenerator {
 
         public String getBarangayEmail() {
             return barangayEmail;
+        }
+
+        public String getBarangaySealPath() {
+            return barangaySealPath;
         }
 
         public String getApplicationId() {

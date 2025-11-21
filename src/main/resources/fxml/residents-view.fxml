@@ -14,7 +14,7 @@
     xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="com.barangay.presentation.controllers.ResidentsController">
     <top>
-        <HBox spacing="12">
+        <HBox spacing="12" alignment="CENTER_LEFT">
             <padding>
                 <Insets top="16" right="16" bottom="16" left="16" />
             </padding>

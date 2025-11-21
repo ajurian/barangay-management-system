@@ -78,7 +78,13 @@
                             GridPane.columnIndex="1" />
 
                         <Label GridPane.rowIndex="7" text="Seal Path" />
-                        <TextField fx:id="sealField" GridPane.rowIndex="7" GridPane.columnIndex="1" />
+                        <HBox spacing="8" GridPane.rowIndex="7" GridPane.columnIndex="1">
+                            <children>
+                                <TextField fx:id="sealField" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="browseSealButton" text="Browse"
+                                    onAction="#handleBrowseSeal" />
+                            </children>
+                        </HBox>
                     </children>
                 </GridPane>
             </children>

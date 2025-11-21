@@ -54,7 +54,8 @@
                     onAction="#openDocumentRequests" maxWidth="Infinity" />
                 <Button fx:id="voterApplicationsButton" text="Voter Applications"
                     onAction="#openVoterApplications" maxWidth="Infinity" />
-                <Button fx:id="officialsButton" text="Officials Directory" onAction="#openOfficials"
+                <Button fx:id="officialsButton" text="Barangay Officials"
+                    onAction="#openOfficials"
                     maxWidth="Infinity" />
                 <Button fx:id="barangayInfoButton" text="Barangay Information"
                     onAction="#openBarangayInfo" maxWidth="Infinity" />

@@ -22,7 +22,7 @@
             <children>
                 <VBox fx:id="staffFiltersContainer" spacing="8">
                     <children>
-                        <HBox spacing="12">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
                             <children>
                                 <Label text="Search" />
                                 <TextField fx:id="searchField"

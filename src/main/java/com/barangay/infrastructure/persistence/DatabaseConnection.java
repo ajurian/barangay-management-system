@@ -150,7 +150,7 @@ public class DatabaseConnection {
                                 "created_at TEXT NOT NULL, " +
                                 "updated_at TEXT NOT NULL, " +
                                 "FOREIGN KEY (resident_id) REFERENCES residents(id))");
-                
+
                 stmt.execute(
                         "CREATE TABLE IF NOT EXISTS barangay_info (" +
                                 "id TEXT PRIMARY KEY, " +
@@ -297,7 +297,7 @@ public class DatabaseConnection {
             }
         }
 
-        BarangayInfo defaultInfo = StaticBarangayInfo.getInfo();
+        BarangayInfo defaultInfo = DefaultBarangayInfo.getInfo();
         String insertSql = "INSERT INTO barangay_info " +
                 "(id, barangay_name, city, province, region, address, contact_number, email, seal_path, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

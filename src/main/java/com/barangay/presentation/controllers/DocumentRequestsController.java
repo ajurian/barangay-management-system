@@ -68,10 +68,10 @@ public class DocumentRequestsController implements ModuleController {
     private TableColumn<DocumentRequest, String> updatedColumn;
 
     @FXML
-    private ChoiceBox<DocumentRequestStatus> statusFilter;
+    private TextField searchField;
 
     @FXML
-    private TextField searchField;
+    private ChoiceBox<DocumentRequestStatus> statusFilter;
 
     @FXML
     private Label requestCountLabel;
@@ -136,10 +136,10 @@ public class DocumentRequestsController implements ModuleController {
 
     @FXML
     private void handleClearFilters() {
-        statusFilter.getSelectionModel().clearSelection();
         if (!residentMode && searchField != null) {
             searchField.clear();
         }
+        statusFilter.getSelectionModel().clearSelection();
         loadRequests();
     }
 
@@ -326,10 +326,10 @@ public class DocumentRequestsController implements ModuleController {
     }
 
     private void configureFilters() {
-        statusFilter.setItems(FXCollections.observableArrayList(DocumentRequestStatus.values()));
         if (searchField != null) {
             HBox.setHgrow(searchField, Priority.ALWAYS);
         }
+        statusFilter.setItems(FXCollections.observableArrayList(DocumentRequestStatus.values()));
     }
 
     private void configureRoleView() {

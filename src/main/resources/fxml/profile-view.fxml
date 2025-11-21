@@ -61,7 +61,8 @@
                 <HBox alignment="CENTER_RIGHT" spacing="12">
                     <children>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button text="Save Profile" onAction="#handleSaveProfile" />
+                        <Button fx:id="saveProfileButton" text="Save Profile"
+                            onAction="#handleSaveProfile" visible="false" managed="false" />
                     </children>
                 </HBox>
 

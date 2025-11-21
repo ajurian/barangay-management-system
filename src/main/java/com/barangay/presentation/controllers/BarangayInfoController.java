@@ -11,7 +11,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -44,6 +47,9 @@ public class BarangayInfoController implements ModuleController {
 
     @FXML
     private TextField sealField;
+
+    @FXML
+    private Button browseSealButton;
 
     @FXML
     private Label lastUpdatedLabel;
@@ -183,6 +189,11 @@ public class BarangayInfoController implements ModuleController {
             saveButton.setVisible(canEdit);
             saveButton.setManaged(canEdit);
         }
+        if (browseSealButton != null) {
+            browseSealButton.setDisable(!canEdit);
+            browseSealButton.setVisible(canEdit);
+            browseSealButton.setManaged(canEdit);
+        }
         if (viewOnlyLabel != null) {
             viewOnlyLabel.setVisible(!canEdit);
             viewOnlyLabel.setManaged(!canEdit);
@@ -215,6 +226,30 @@ public class BarangayInfoController implements ModuleController {
             statusMessageLabel.setText(message);
             statusMessageLabel.getStyleClass().removeAll("status-error", "status-success");
             statusMessageLabel.getStyleClass().add(isError ? "status-error" : "status-success");
+        }
+    }
+
+    @FXML
+    private void handleBrowseSeal() {
+        if (!canEdit) {
+            DialogUtil.showWarning("Barangay Information", "Only administrators can update barangay information.");
+            return;
+        }
+
+        Window owner = browseSealButton != null && browseSealButton.getScene() != null
+                ? browseSealButton.getScene().getWindow()
+                : null;
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select Barangay Seal");
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"),
+                new FileChooser.ExtensionFilter("All Files", "*.*"));
+
+        File selected = chooser.showOpenDialog(owner);
+        if (selected != null) {
+            sealField.setText(selected.getAbsolutePath());
+            clearStatusMessage();
         }
     }
 }

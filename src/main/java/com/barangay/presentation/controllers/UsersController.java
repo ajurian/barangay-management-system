@@ -45,12 +45,12 @@ public class UsersController implements ModuleController {
 
     @FXML
     private TableColumn<User, Boolean> activeColumn;
-
-    @FXML
-    private ChoiceBox<UserRole> roleFilter;
-
+    
     @FXML
     private TextField searchField;
+    
+    @FXML
+    private ChoiceBox<UserRole> roleFilter;
 
     @FXML
     private Label userCountLabel;
@@ -312,9 +312,9 @@ public class UsersController implements ModuleController {
     }
 
     private void configureFilters() {
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         roleFilter.setItems(FXCollections.observableArrayList(UserRole.values()));
         roleFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
     }
 
     private void loadUsers() {

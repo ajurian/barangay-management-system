@@ -11,6 +11,7 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -34,6 +35,9 @@ public class ProfileController implements ModuleController {
 
     @FXML
     private TextField residentIdField;
+
+    @FXML
+    private Button saveProfileButton;
 
     @FXML
     private Label profileMessageLabel;
@@ -199,6 +203,10 @@ public class ProfileController implements ModuleController {
         residentIdField.setEditable(show);
         linkedResidentLabel.setVisible(show);
         linkedResidentLabel.setManaged(show);
+        if (saveProfileButton != null) {
+            saveProfileButton.setVisible(show);
+            saveProfileButton.setManaged(show);
+        }
     }
 
     private void updateResidentInfo() {

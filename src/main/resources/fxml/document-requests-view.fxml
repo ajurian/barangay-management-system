@@ -23,9 +23,9 @@
                 <Label text="Document Requests" styleClass="module-title" />
                 <Label fx:id="residentInfoLabel" wrapText="true" managed="false" visible="false" />
                 <HBox fx:id="filterBar" spacing="10" alignment="CENTER_LEFT">
-                    <ChoiceBox fx:id="statusFilter" prefWidth="180" />
                     <TextField fx:id="searchField" promptText="Search by ID, resident, purpose"
                         HBox.hgrow="ALWAYS" />
+                    <ChoiceBox fx:id="statusFilter" prefWidth="180" />
                     <Button text="Apply" onAction="#handleApplyFilters" />
                     <Button text="Clear" onAction="#handleClearFilters" />
                 </HBox>
