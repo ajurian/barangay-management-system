@@ -8,6 +8,11 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.domain.exceptions.UnauthorizedOperationException;
 import com.barangay.domain.repositories.IBarangayInfoRepository;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * Use Case: Update barangay information.
  */
@@ -55,6 +60,7 @@ public class UpdateBarangayInfoUseCase {
         info.setContactNumber(normalize(input.getContactNumber()));
         info.setEmail(normalize(input.getEmail()));
         info.setSealPath(normalize(input.getSealPath()));
+        info.setDashboardImages(normalizeImages(input.getDashboardImages()));
     }
 
     private String normalize(String value) {
@@ -63,5 +69,15 @@ public class UpdateBarangayInfoUseCase {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private List<String> normalizeImages(List<String> images) {
+        if (images == null) {
+            return Collections.emptyList();
+        }
+        return images.stream()
+                .map(this::normalize)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

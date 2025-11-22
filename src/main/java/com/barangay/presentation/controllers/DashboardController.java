@@ -16,12 +16,21 @@ import com.barangay.infrastructure.config.DIContainer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -127,6 +136,24 @@ public class DashboardController implements ModuleController {
     @FXML
     private Label residentMissingLinkLabel;
 
+    @FXML
+    private VBox carouselSection;
+
+    @FXML
+    private ImageView carouselImageView;
+
+    @FXML
+    private Label carouselCounterLabel;
+
+    @FXML
+    private Label carouselStatusLabel;
+
+    @FXML
+    private Button carouselPrevButton;
+
+    @FXML
+    private Button carouselNextButton;
+
     private DIContainer container;
     private MainLayoutController mainLayoutController;
     private User currentUser;
@@ -135,6 +162,8 @@ public class DashboardController implements ModuleController {
 
     private boolean residentMode;
     private Resident linkedResident;
+    private List<String> carouselImages = Collections.emptyList();
+    private int currentCarouselIndex;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");
 
@@ -150,6 +179,7 @@ public class DashboardController implements ModuleController {
 
     @Override
     public void refresh() {
+        populateCarousel();
         if (residentMode) {
             populateResidentDashboard();
             return;
@@ -255,6 +285,125 @@ public class DashboardController implements ModuleController {
 
         insights.add("\u2022 Welcome back, " +
                 mainLayoutController.getCurrentUser().getUsername() + "!");
+    }
+
+    private void populateCarousel() {
+        if (carouselSection == null) {
+            return;
+        }
+        try {
+            carouselImages = container.getGetBarangayInfoUseCase().execute().getDashboardImages();
+        } catch (Exception ex) {
+            carouselImages = Collections.emptyList();
+        }
+
+        if (carouselImages == null || carouselImages.isEmpty()) {
+            setCarouselVisibility(false);
+            return;
+        }
+
+        setCarouselVisibility(true);
+        currentCarouselIndex = 0;
+        updateCarouselImage();
+    }
+
+    private void setCarouselVisibility(boolean visible) {
+        if (carouselSection == null) {
+            return;
+        }
+        carouselSection.setVisible(visible);
+        carouselSection.setManaged(visible);
+        if (!visible && carouselCounterLabel != null) {
+            carouselCounterLabel.setText("");
+        }
+    }
+
+    private void updateCarouselImage() {
+        if (carouselImageView == null || carouselImages == null || carouselImages.isEmpty()) {
+            return;
+        }
+
+        String path = carouselImages.get(currentCarouselIndex);
+        Image image = tryLoadImage(path);
+        boolean hasImage = image != null && !image.isError();
+        carouselImageView.setImage(hasImage ? image : null);
+
+        if (carouselStatusLabel != null) {
+            carouselStatusLabel.setText(hasImage ? "" : "Image unavailable");
+            carouselStatusLabel.setVisible(!hasImage);
+            carouselStatusLabel.setManaged(!hasImage);
+        }
+
+        if (carouselCounterLabel != null) {
+            carouselCounterLabel.setText((currentCarouselIndex + 1) + " / " + carouselImages.size());
+        }
+
+        if (carouselPrevButton != null) {
+            carouselPrevButton.setDisable(currentCarouselIndex == 0);
+        }
+        if (carouselNextButton != null) {
+            carouselNextButton.setDisable(currentCarouselIndex >= carouselImages.size() - 1);
+        }
+    }
+
+    @FXML
+    private void handleCarouselPrev() {
+        if (currentCarouselIndex <= 0) {
+            return;
+        }
+        currentCarouselIndex--;
+        updateCarouselImage();
+    }
+
+    @FXML
+    private void handleCarouselNext() {
+        if (carouselImages == null || currentCarouselIndex >= carouselImages.size() - 1) {
+            return;
+        }
+        currentCarouselIndex++;
+        updateCarouselImage();
+    }
+
+    private Image tryLoadImage(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        String trimmed = path.trim();
+        try {
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                return new Image(trimmed, true);
+            }
+
+            if (trimmed.startsWith("classpath:")) {
+                String resourcePath = trimmed.substring("classpath:".length());
+                InputStream stream = getClass().getResourceAsStream(resourcePath.startsWith("/")
+                        ? resourcePath : "/" + resourcePath);
+                if (stream != null) {
+                    return new Image(stream);
+                }
+            }
+
+            if (trimmed.startsWith("/")) {
+                URL resource = getClass().getResource(trimmed);
+                if (resource != null) {
+                    return new Image(resource.toExternalForm(), true);
+                }
+            }
+
+            Path filePath = Path.of(trimmed);
+            if (Files.exists(filePath)) {
+                return new Image(filePath.toUri().toString(), true);
+            }
+
+            try {
+                URL url = new URL(trimmed);
+                return new Image(url.toExternalForm(), true);
+            } catch (MalformedURLException ignored) {
+                return null;
+            }
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private void configureDashboardVisibility() {

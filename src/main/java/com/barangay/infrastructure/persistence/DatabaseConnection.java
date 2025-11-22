@@ -166,9 +166,11 @@ public class DatabaseConnection {
                                 "address TEXT, " +
                                 "contact_number TEXT, " +
                                 "email TEXT, " +
-                                "seal_path TEXT, " +
+                        "seal_path TEXT, " +
+                        "dashboard_images TEXT, " +
                                 "updated_at TEXT)");
 
+                ensureBarangayImagesColumn(stmt);
                 ensureBarangayInfoSeeded(conn);
 
                 // Create indexes for better performance
@@ -316,6 +318,17 @@ public class DatabaseConnection {
         }
     }
 
+    private static void ensureBarangayImagesColumn(Statement stmt) throws SQLException {
+        try {
+            stmt.execute("ALTER TABLE barangay_info ADD COLUMN dashboard_images TEXT");
+        } catch (SQLException e) {
+            String message = e.getMessage();
+            if (message == null || !message.toLowerCase().contains("duplicate column name")) {
+                throw e;
+            }
+        }
+    }
+
     private static void ensureBarangayInfoSeeded(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM barangay_info")) {
@@ -326,8 +339,8 @@ public class DatabaseConnection {
 
         BarangayInfo defaultInfo = DefaultBarangayInfo.getInfo();
         String insertSql = "INSERT INTO barangay_info " +
-                "(id, barangay_name, city, province, region, address, contact_number, email, seal_path, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "(id, barangay_name, city, province, region, address, contact_number, email, seal_path, dashboard_images, updated_at) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
             pstmt.setString(1, defaultInfo.getId());
@@ -338,11 +351,15 @@ public class DatabaseConnection {
             pstmt.setString(6, defaultInfo.getAddress());
             pstmt.setString(7, defaultInfo.getContactNumber());
             pstmt.setString(8, defaultInfo.getEmail());
-            pstmt.setString(9, defaultInfo.getSealPath());
+                pstmt.setString(9, defaultInfo.getSealPath());
+                String serializedImages = defaultInfo.getDashboardImages().isEmpty()
+                    ? null
+                    : String.join("\n", defaultInfo.getDashboardImages());
+                pstmt.setString(10, serializedImages);
             LocalDateTime updatedAt = defaultInfo.getUpdatedAt() != null
                     ? defaultInfo.getUpdatedAt()
                     : LocalDateTime.now();
-            pstmt.setString(10, updatedAt.toString());
+                pstmt.setString(11, updatedAt.toString());
             pstmt.executeUpdate();
         }
     }

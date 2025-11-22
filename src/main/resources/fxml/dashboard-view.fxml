@@ -5,10 +5,12 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 
@@ -24,6 +26,31 @@
                 <Insets top="24" right="24" bottom="24" left="24" />
             </padding>
             <children>
+                <VBox fx:id="carouselSection" spacing="12" visible="false" managed="false">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <children>
+                                <Label text="Barangay Highlights" styleClass="section-title" />
+                                <Label fx:id="carouselCounterLabel" text="" styleClass="card-note" />
+                            </children>
+                        </HBox>
+                        <StackPane styleClass="carousel-frame">
+                            <children>
+                                <ImageView fx:id="carouselImageView" fitWidth="720" fitHeight="260"
+                                    preserveRatio="true" smooth="true" />
+                                <Label fx:id="carouselStatusLabel" text="" wrapText="true"
+                                    styleClass="carousel-status" visible="false" managed="false" />
+                                <Button fx:id="carouselPrevButton" text="◀" onAction="#handleCarouselPrev"
+                                    styleClass="carousel-nav-button" focusTraversable="false"
+                                    StackPane.alignment="CENTER_LEFT" />
+                                <Button fx:id="carouselNextButton" text="▶" onAction="#handleCarouselNext"
+                                    styleClass="carousel-nav-button" focusTraversable="false"
+                                    StackPane.alignment="CENTER_RIGHT" />
+                            </children>
+                        </StackPane>
+                    </children>
+                </VBox>
+
                 <VBox fx:id="adminDashboardContainer" spacing="24">
                     <children>
                         <Label text="Executive Dashboard" styleClass="section-title" />

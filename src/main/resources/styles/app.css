@@ -213,3 +213,44 @@
 .status-success {
   -fx-text-fill: #2a9d8f;
 }
+
+.carousel-frame {
+  background-color: linear-gradient(to bottom, #ffffff, #f8fafc);
+  -fx-background-color: linear-gradient(to bottom, #ffffff, #f8fafc);
+  border-color: rgba(30, 60, 114, 0.12);
+  -fx-border-color: rgba(30, 60, 114, 0.12);
+  border-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-radius: 18;
+  padding: 16;
+  -fx-padding: 16;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 18, 0.2, 0, 6);
+}
+
+.carousel-nav-button {
+  background-color: rgba(30, 60, 114, 0.65);
+  -fx-background-color: rgba(30, 60, 114, 0.65);
+  -fx-text-fill: white;
+  -fx-background-radius: 999;
+  padding: 8 12 8 12;
+  -fx-padding: 8 12 8 12;
+}
+
+.carousel-nav-button:disabled {
+  background-color: rgba(30, 60, 114, 0.25);
+  -fx-background-color: rgba(30, 60, 114, 0.25);
+  -fx-text-fill: rgba(255, 255, 255, 0.7);
+}
+
+.carousel-status {
+  -fx-text-fill: #607196;
+  font-size: 14px;
+  -fx-font-size: 14px;
+  font-weight: bold;
+  -fx-font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.8);
+  -fx-background-color: rgba(255, 255, 255, 0.8);
+  padding: 10 16 10 16;
+  -fx-padding: 10 16 10 16;
+  -fx-background-radius: 10;
+}

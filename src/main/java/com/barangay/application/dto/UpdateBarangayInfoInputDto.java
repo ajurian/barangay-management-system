@@ -1,5 +1,7 @@
 package com.barangay.application.dto;
 
+import java.util.List;
+
 /**
  * DTO for updating barangay information.
  */
@@ -12,9 +14,11 @@ public class UpdateBarangayInfoInputDto {
     private final String contactNumber;
     private final String email;
     private final String sealPath;
+    private final List<String> dashboardImages;
 
     public UpdateBarangayInfoInputDto(String barangayName, String city, String province,
-            String region, String address, String contactNumber, String email, String sealPath) {
+            String region, String address, String contactNumber, String email, String sealPath,
+            List<String> dashboardImages) {
         this.barangayName = barangayName;
         this.city = city;
         this.province = province;
@@ -23,6 +27,7 @@ public class UpdateBarangayInfoInputDto {
         this.contactNumber = contactNumber;
         this.email = email;
         this.sealPath = sealPath;
+        this.dashboardImages = dashboardImages;
     }
 
     public String getBarangayName() {
@@ -55,5 +60,9 @@ public class UpdateBarangayInfoInputDto {
 
     public String getSealPath() {
         return sealPath;
+    }
+
+    public List<String> getDashboardImages() {
+        return dashboardImages;
     }
 }

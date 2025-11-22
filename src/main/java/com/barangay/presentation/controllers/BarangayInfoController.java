@@ -6,9 +6,12 @@ import com.barangay.domain.entities.User;
 import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -16,7 +19,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Module controller for viewing static barangay information.
@@ -24,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 public class BarangayInfoController implements ModuleController {
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm");
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg");
 
     @FXML
     private TextField barangayNameField;
@@ -70,14 +79,33 @@ public class BarangayInfoController implements ModuleController {
     @FXML
     private Button saveButton;
 
+    @FXML
+    private TextField dashboardImageField;
+
+    @FXML
+    private Button browseDashboardImageButton;
+
+    @FXML
+    private Button addDashboardImageButton;
+
+    @FXML
+    private Button removeDashboardImageButton;
+
+    @FXML
+    private ListView<String> dashboardImagesListView;
+
     private DIContainer container;
     private MainLayoutController mainLayoutController;
     private boolean canEdit;
+    private final ObservableList<String> dashboardImages = FXCollections.observableArrayList();
 
     @Override
     public void init(DIContainer container, MainLayoutController mainLayoutController) {
         this.container = container;
         this.mainLayoutController = mainLayoutController;
+        if (dashboardImagesListView != null) {
+            dashboardImagesListView.setItems(dashboardImages);
+        }
         configureFormAccess();
         refresh();
     }
@@ -111,6 +139,7 @@ public class BarangayInfoController implements ModuleController {
         setText(contactField, info.getContactNumber());
         setText(emailField, info.getEmail());
         setText(sealField, info.getSealPath());
+        dashboardImages.setAll(info.getDashboardImages());
 
         if (lastUpdatedLabel != null) {
             if (info.getUpdatedAt() != null) {
@@ -130,6 +159,7 @@ public class BarangayInfoController implements ModuleController {
         setText(contactField, "");
         setText(emailField, "");
         setText(sealField, "");
+        dashboardImages.clear();
         if (lastUpdatedLabel != null) {
             lastUpdatedLabel.setText(statusText);
         }
@@ -164,7 +194,8 @@ public class BarangayInfoController implements ModuleController {
                 addressField.getText(),
                 contactField.getText(),
                 emailField.getText(),
-                sealField.getText());
+            sealField.getText(),
+            new ArrayList<>(dashboardImages));
 
         try {
             BarangayInfo updated = container.getUpdateBarangayInfoUseCase().execute(input);
@@ -192,6 +223,7 @@ public class BarangayInfoController implements ModuleController {
         setEditable(emailField, canEdit);
         setEditable(sealField, canEdit);
         setSealFieldVisibility(canEdit);
+        setDashboardImageControlsEnabled(canEdit);
         if (saveButton != null) {
             saveButton.setDisable(!canEdit);
             saveButton.setVisible(canEdit);
@@ -216,6 +248,28 @@ public class BarangayInfoController implements ModuleController {
         if (sealFieldContainer != null) {
             sealFieldContainer.setVisible(visible);
             sealFieldContainer.setManaged(visible);
+        }
+    }
+
+    private void setDashboardImageControlsEnabled(boolean enabled) {
+        if (dashboardImageField != null) {
+            dashboardImageField.setEditable(enabled);
+            dashboardImageField.setDisable(!enabled);
+        }
+        if (browseDashboardImageButton != null) {
+            browseDashboardImageButton.setDisable(!enabled);
+            browseDashboardImageButton.setVisible(enabled);
+            browseDashboardImageButton.setManaged(enabled);
+        }
+        if (addDashboardImageButton != null) {
+            addDashboardImageButton.setDisable(!enabled);
+            addDashboardImageButton.setVisible(enabled);
+            addDashboardImageButton.setManaged(enabled);
+        }
+        if (removeDashboardImageButton != null) {
+            removeDashboardImageButton.setDisable(!enabled);
+            removeDashboardImageButton.setVisible(enabled);
+            removeDashboardImageButton.setManaged(enabled);
         }
     }
 
@@ -255,9 +309,7 @@ public class BarangayInfoController implements ModuleController {
             return;
         }
 
-        Window owner = browseSealButton != null && browseSealButton.getScene() != null
-                ? browseSealButton.getScene().getWindow()
-                : null;
+        Window owner = resolveOwnerWindow(browseSealButton);
 
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Barangay Seal");
@@ -269,6 +321,100 @@ public class BarangayInfoController implements ModuleController {
         if (selected != null) {
             sealField.setText(selected.getAbsolutePath());
             clearStatusMessage();
+        }
+    }
+
+    @FXML
+    private void handleBrowseDashboardImage() {
+        if (!canEdit) {
+            DialogUtil.showWarning("Barangay Information", "Only administrators can update barangay information.");
+            return;
+        }
+
+        Window owner = resolveOwnerWindow(browseDashboardImageButton);
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select Dashboard Image");
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"),
+                new FileChooser.ExtensionFilter("All Files", "*.*"));
+
+        File selected = chooser.showOpenDialog(owner);
+        if (selected != null && dashboardImageField != null) {
+            dashboardImageField.setText(selected.getAbsolutePath());
+            clearStatusMessage();
+        }
+    }
+
+    @FXML
+    private void handleAddDashboardImage() {
+        if (!canEdit) {
+            DialogUtil.showWarning("Barangay Information", "Only administrators can update barangay information.");
+            return;
+        }
+        if (dashboardImageField == null) {
+            return;
+        }
+        String normalized = normalizePath(dashboardImageField.getText());
+        if (normalized == null) {
+            showStatusMessage("Enter a valid image path or URL.", true);
+            return;
+        }
+        if (!isAllowedImageFile(normalized)) {
+            showStatusMessage("Select an existing .png, .jpg, or .jpeg file.", true);
+            return;
+        }
+        if (dashboardImages.contains(normalized)) {
+            showStatusMessage("Image is already in the carousel.", true);
+            return;
+        }
+        dashboardImages.add(normalized);
+        dashboardImageField.clear();
+        clearStatusMessage();
+    }
+
+    @FXML
+    private void handleRemoveDashboardImage() {
+        if (!canEdit) {
+            DialogUtil.showWarning("Barangay Information", "Only administrators can update barangay information.");
+            return;
+        }
+        if (dashboardImagesListView == null) {
+            return;
+        }
+        String selected = dashboardImagesListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showStatusMessage("Select an image to remove.", true);
+            return;
+        }
+        dashboardImages.remove(selected);
+        clearStatusMessage();
+    }
+
+    private Window resolveOwnerWindow(Button button) {
+        if (button != null && button.getScene() != null) {
+            return button.getScene().getWindow();
+        }
+        return null;
+    }
+
+    private String normalizePath(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isAllowedImageFile(String value) {
+        try {
+            Path path = Path.of(value);
+            if (!Files.exists(path) || Files.isDirectory(path)) {
+                return false;
+            }
+            String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+            return ALLOWED_IMAGE_EXTENSIONS.stream().anyMatch(fileName::endsWith);
+        } catch (Exception ex) {
+            return false;
         }
     }
 }
