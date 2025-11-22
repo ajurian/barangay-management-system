@@ -101,57 +101,60 @@ public class DatabaseConnection {
 
                 // Documents table
                 stmt.execute(
-                        "CREATE TABLE IF NOT EXISTS documents (" +
-                                "reference TEXT PRIMARY KEY, " +
-                                "resident_id TEXT NOT NULL, " +
-                                "type TEXT NOT NULL, " +
-                                "purpose TEXT, " +
-                                "issued_date TEXT NOT NULL, " +
-                                "valid_until TEXT, " +
-                                "issued_by TEXT NOT NULL, " +
-                                "additional_info TEXT, " +
+                    "CREATE TABLE IF NOT EXISTS documents (" +
+                        "reference TEXT PRIMARY KEY, " +
+                        "resident_id TEXT NOT NULL, " +
+                        "type TEXT NOT NULL, " +
+                        "purpose TEXT, " +
+                        "issued_date TEXT NOT NULL, " +
+                        "valid_until TEXT, " +
+                        "issued_by TEXT NOT NULL, " +
+                        "additional_info TEXT, " +
                         "photo_path TEXT, " +
-                                "request_id TEXT, " +
-                                "created_at TEXT NOT NULL, " +
-                                "FOREIGN KEY (resident_id) REFERENCES residents(id), " +
-                                "FOREIGN KEY (request_id) REFERENCES document_requests(id))");
+                        "request_id TEXT, " +
+                        "created_at TEXT NOT NULL, " +
+                        "FOREIGN KEY (resident_id) REFERENCES residents(id), " +
+                        "FOREIGN KEY (request_id) REFERENCES document_requests(id))");
 
                 ensureDocumentsRequestColumn(stmt);
                 ensureDocumentsPhotoColumn(stmt);
 
                 // Voter Applications table
                 stmt.execute(
-                        "CREATE TABLE IF NOT EXISTS voter_applications (" +
-                                "id TEXT PRIMARY KEY, " +
-                                "resident_id TEXT NOT NULL, " +
-                                "application_type TEXT NOT NULL, " +
-                                "current_registration_details TEXT, " +
-                                "valid_id_front_path TEXT, " +
-                                "valid_id_back_path TEXT, " +
-                                "status TEXT NOT NULL, " +
-                                "review_notes TEXT, " +
-                                "reviewed_by TEXT, " +
-                                "appointment_datetime TEXT, " +
-                                "appointment_venue TEXT, " +
-                                "appointment_slip_reference TEXT, " +
-                                "submitted_at TEXT NOT NULL, " +
-                                "reviewed_at TEXT, " +
-                                "updated_at TEXT NOT NULL, " +
-                                "FOREIGN KEY (resident_id) REFERENCES residents(id))");
+                    "CREATE TABLE IF NOT EXISTS voter_applications (" +
+                        "id TEXT PRIMARY KEY, " +
+                        "resident_id TEXT NOT NULL, " +
+                        "application_type TEXT NOT NULL, " +
+                        "current_registration_details TEXT, " +
+                        "valid_id_front_path TEXT, " +
+                        "valid_id_back_path TEXT, " +
+                        "status TEXT NOT NULL, " +
+                        "review_notes TEXT, " +
+                        "reviewed_by TEXT, " +
+                        "appointment_datetime TEXT, " +
+                        "appointment_venue TEXT, " +
+                        "appointment_slip_reference TEXT, " +
+                        "submitted_at TEXT NOT NULL, " +
+                        "reviewed_at TEXT, " +
+                        "updated_at TEXT NOT NULL, " +
+                        "FOREIGN KEY (resident_id) REFERENCES residents(id))");
 
                 // Barangay Officials table
                 stmt.execute(
-                        "CREATE TABLE IF NOT EXISTS barangay_officials (" +
-                                "id TEXT PRIMARY KEY, " +
-                                "resident_id TEXT NOT NULL, " +
-                                "official_name TEXT NOT NULL, " +
-                                "position TEXT NOT NULL, " +
-                                "term_start TEXT NOT NULL, " +
-                                "term_end TEXT NOT NULL, " +
-                                "is_current INTEGER DEFAULT 1, " +
-                                "created_at TEXT NOT NULL, " +
-                                "updated_at TEXT NOT NULL, " +
-                                "FOREIGN KEY (resident_id) REFERENCES residents(id))");
+                    "CREATE TABLE IF NOT EXISTS barangay_officials (" +
+                        "id TEXT PRIMARY KEY, " +
+                        "resident_id TEXT NOT NULL, " +
+                        "official_name TEXT NOT NULL, " +
+                        "position TEXT NOT NULL, " +
+                        "term_start TEXT NOT NULL, " +
+                        "term_end TEXT NOT NULL, " +
+                        "is_current INTEGER DEFAULT 1, " +
+                        "photo_path TEXT, " +
+                        "created_at TEXT NOT NULL, " +
+                        "updated_at TEXT NOT NULL, " +
+                        "FOREIGN KEY (resident_id) REFERENCES residents(id))");
+
+                ensureOfficialsPhotoColumn(stmt);
 
                 stmt.execute(
                         "CREATE TABLE IF NOT EXISTS barangay_info (" +
@@ -294,6 +297,17 @@ public class DatabaseConnection {
     private static void ensureDocumentsPhotoColumn(Statement stmt) throws SQLException {
         try {
             stmt.execute("ALTER TABLE documents ADD COLUMN photo_path TEXT");
+        } catch (SQLException e) {
+            String message = e.getMessage();
+            if (message == null || !message.toLowerCase().contains("duplicate column name")) {
+                throw e;
+            }
+        }
+    }
+
+    private static void ensureOfficialsPhotoColumn(Statement stmt) throws SQLException {
+        try {
+            stmt.execute("ALTER TABLE barangay_officials ADD COLUMN photo_path TEXT");
         } catch (SQLException e) {
             String message = e.getMessage();
             if (message == null || !message.toLowerCase().contains("duplicate column name")) {

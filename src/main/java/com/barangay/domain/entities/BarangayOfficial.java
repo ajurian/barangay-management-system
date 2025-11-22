@@ -15,6 +15,7 @@ public class BarangayOfficial {
     private LocalDate termStart;
     private LocalDate termEnd;
     private boolean isCurrent;
+    private String photoPath;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -31,6 +32,7 @@ public class BarangayOfficial {
         this.termEnd = termEnd;
         this.isCurrent = LocalDate.now().isBefore(termEnd) &&
                 LocalDate.now().isAfter(termStart);
+        this.photoPath = null;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -39,6 +41,12 @@ public class BarangayOfficial {
     public BarangayOfficial(String id, ResidentId residentId, String officialName,
             OfficialPosition position, LocalDate termStart, LocalDate termEnd,
             boolean isCurrent) {
+        this(id, residentId, officialName, position, termStart, termEnd, isCurrent, null);
+    }
+
+    public BarangayOfficial(String id, ResidentId residentId, String officialName,
+            OfficialPosition position, LocalDate termStart, LocalDate termEnd,
+            boolean isCurrent, String photoPath) {
         if (id == null || residentId == null || position == null ||
                 termStart == null || termEnd == null) {
             throw new IllegalArgumentException("Required fields cannot be null");
@@ -50,6 +58,7 @@ public class BarangayOfficial {
         this.termStart = termStart;
         this.termEnd = termEnd;
         this.isCurrent = isCurrent;
+        this.photoPath = photoPath;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -85,6 +94,10 @@ public class BarangayOfficial {
 
     public boolean isCurrent() {
         return isCurrent;
+    }
+
+    public String getPhotoPath() {
+        return photoPath;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -123,6 +136,11 @@ public class BarangayOfficial {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = (photoPath == null || photoPath.isBlank()) ? null : photoPath;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void endTerm() {
         this.isCurrent = false;
         this.termEnd = LocalDate.now();
@@ -136,5 +154,9 @@ public class BarangayOfficial {
         LocalDate now = LocalDate.now();
         return (now.isAfter(termStart) || now.isEqual(termStart)) &&
                 (now.isBefore(termEnd) || now.isEqual(termEnd));
+    }
+
+    public boolean hasPhoto() {
+        return photoPath != null && !photoPath.isBlank();
     }
 }

@@ -8,7 +8,6 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
-import com.barangay.presentation.util.OfficialPhotoStorage;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -34,7 +33,10 @@ import javafx.stage.Window;
 import javafx.util.StringConverter;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -219,9 +221,9 @@ public class OfficialsController implements ModuleController {
         if (selected == null) {
             return;
         }
-        Optional<File> photo = OfficialPhotoStorage.resolvePhoto(selected.getOfficialId());
+        Optional<File> photo = resolvePhotoFile(selected);
         if (photo.isEmpty()) {
-            DialogUtil.showWarning("View Photo", "No photo uploaded for the selected official yet.");
+            DialogUtil.showWarning("View Photo", "No available photo for the selected official. Please upload again.");
             return;
         }
         Image image;
@@ -260,10 +262,11 @@ public class OfficialsController implements ModuleController {
             return;
         }
         try {
-            OfficialPhotoStorage.savePhoto(selected.getOfficialId(), chosen);
+            container.getUpdateOfficialPhotoUseCase().execute(selected.getOfficialId(), chosen.getAbsolutePath());
+            selected.setPhotoPath(chosen.getAbsolutePath());
             DialogUtil.showInfo("Update Photo", "Photo updated successfully.");
             updateSelectionDependentActions(selected);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             DialogUtil.showError("Update Photo", ex.getMessage());
         }
     }
@@ -490,8 +493,7 @@ public class OfficialsController implements ModuleController {
     private void updateSelectionDependentActions(BarangayOfficial selected) {
         boolean hasSelection = selected != null;
         if (viewPhotoButton != null) {
-            boolean enable = hasSelection && selected != null
-                    && OfficialPhotoStorage.photoExists(selected.getOfficialId());
+            boolean enable = hasSelection && hasExistingPhoto(selected);
             viewPhotoButton.setDisable(!enable);
         }
         if (updatePhotoButton != null) {
@@ -512,5 +514,24 @@ public class OfficialsController implements ModuleController {
         chooser.getExtensionFilters().setAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
         return chooser;
+    }
+
+    private boolean hasExistingPhoto(BarangayOfficial official) {
+        if (official == null || !official.hasPhoto()) {
+            return false;
+        }
+        try {
+            Path path = Paths.get(official.getPhotoPath());
+            return Files.exists(path);
+        } catch (InvalidPathException ex) {
+            return false;
+        }
+    }
+
+    private Optional<File> resolvePhotoFile(BarangayOfficial official) {
+        if (!hasExistingPhoto(official)) {
+            return Optional.empty();
+        }
+        return Optional.of(Paths.get(official.getPhotoPath()).toFile());
     }
 }

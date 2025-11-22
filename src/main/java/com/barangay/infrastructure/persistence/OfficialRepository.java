@@ -19,9 +19,9 @@ public class OfficialRepository implements IOfficialRepository {
     @Override
     public void save(BarangayOfficial official) {
         String sql = "INSERT OR REPLACE INTO barangay_officials " +
-                "(id, resident_id, official_name, position, term_start, term_end, is_current, " +
-                "created_at, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "(id, resident_id, official_name, position, term_start, term_end, is_current, " +
+            "photo_path, created_at, updated_at) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -33,8 +33,9 @@ public class OfficialRepository implements IOfficialRepository {
             pstmt.setString(5, official.getTermStart().toString());
             pstmt.setString(6, official.getTermEnd().toString());
             pstmt.setInt(7, official.isCurrent() ? 1 : 0);
-            pstmt.setString(8, official.getCreatedAt().toString());
-            pstmt.setString(9, official.getUpdatedAt().toString());
+            pstmt.setString(8, official.getPhotoPath());
+            pstmt.setString(9, official.getCreatedAt().toString());
+            pstmt.setString(10, official.getUpdatedAt().toString());
 
             pstmt.executeUpdate();
 
@@ -46,8 +47,8 @@ public class OfficialRepository implements IOfficialRepository {
     @Override
     public void update(BarangayOfficial official) {
         String sql = "UPDATE barangay_officials SET " +
-                "official_name = ?, position = ?, term_start = ?, term_end = ?, " +
-                "is_current = ?, updated_at = ? WHERE id = ?";
+            "official_name = ?, position = ?, term_start = ?, term_end = ?, " +
+            "is_current = ?, photo_path = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -57,8 +58,9 @@ public class OfficialRepository implements IOfficialRepository {
             pstmt.setString(3, official.getTermStart().toString());
             pstmt.setString(4, official.getTermEnd().toString());
             pstmt.setInt(5, official.isCurrent() ? 1 : 0);
-            pstmt.setString(6, LocalDateTime.now().toString());
-            pstmt.setString(7, official.getId());
+            pstmt.setString(6, official.getPhotoPath());
+            pstmt.setString(7, LocalDateTime.now().toString());
+            pstmt.setString(8, official.getId());
 
             pstmt.executeUpdate();
 
@@ -206,7 +208,8 @@ public class OfficialRepository implements IOfficialRepository {
         LocalDate termStart = LocalDate.parse(rs.getString("term_start"));
         LocalDate termEnd = LocalDate.parse(rs.getString("term_end"));
         boolean isCurrent = rs.getInt("is_current") == 1;
+        String photoPath = rs.getString("photo_path");
         return new BarangayOfficial(id, residentId, officialName, position,
-                termStart, termEnd, isCurrent);
+            termStart, termEnd, isCurrent, photoPath);
     }
 }

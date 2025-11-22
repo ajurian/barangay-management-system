@@ -11,7 +11,6 @@ import com.barangay.domain.entities.ResidentId;
 import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
-import com.barangay.presentation.util.DocumentPhotoStorage;
 import com.barangay.presentation.util.FormDialogUtil;
 import com.barangay.presentation.util.TableCopyUtil;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,6 +36,7 @@ import javafx.stage.Window;
 import javafx.util.StringConverter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -44,6 +44,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Module controller for document issuance and search.
@@ -228,7 +233,7 @@ public class DocumentsController implements ModuleController {
             DialogUtil.showWarning("Download Photo", "Please select a document first.");
             return;
         }
-        if (!DocumentPhotoStorage.photoExists(selected.getPhotoPath())) {
+        if (!photoExists(selected.getPhotoPath())) {
             DialogUtil.showWarning("Download Photo", "No uploaded photo found for the selected document.");
             return;
         }
@@ -237,7 +242,7 @@ public class DocumentsController implements ModuleController {
             return;
         }
         try {
-            DocumentPhotoStorage.copyPhotoTo(selected.getPhotoPath(), destination.toPath());
+            copyPhotoTo(selected.getPhotoPath(), destination.toPath());
             DialogUtil.showInfo("Download Photo", "Photo saved to: " + destination.getAbsolutePath());
         } catch (IOException ex) {
             DialogUtil.showError("Download Photo", ex.getMessage());
@@ -441,7 +446,7 @@ public class DocumentsController implements ModuleController {
             return;
         }
         boolean canDownload = hasSelection && selected.hasPhoto()
-                && DocumentPhotoStorage.photoExists(selected.getPhotoPath());
+            && photoExists(selected.getPhotoPath());
         downloadPhotoButton.setDisable(!canDownload);
     }
 
@@ -542,7 +547,7 @@ public class DocumentsController implements ModuleController {
         String storedPhotoPath = null;
         if (result.getPhotoFile() != null) {
             try {
-                storedPhotoPath = DocumentPhotoStorage.savePhoto(result.getPhotoFile());
+                storedPhotoPath = capturePhotoPath(result.getPhotoFile());
             } catch (IOException ex) {
                 DialogUtil.showError("Issue Document", "Unable to store document photo: " + ex.getMessage());
                 return;
@@ -576,13 +581,15 @@ public class DocumentsController implements ModuleController {
     }
 
     private File choosePhotoDestination(Document document) {
-        File source = DocumentPhotoStorage.resolvePhoto(document.getPhotoPath());
+        Path sourcePath = resolvePhotoPath(document.getPhotoPath());
+        if (sourcePath == null || !Files.exists(sourcePath)) {
+            return null;
+        }
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save Document Photo");
         chooser.getExtensionFilters().setAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
-        String extension = DocumentPhotoStorage.getExtension(source != null ? source.getName() : null)
-                .orElse(".png");
+        String extension = getExtension(sourcePath.getFileName().toString()).orElse(".png");
         chooser.setInitialFileName(document.getReference().getValue() + extension);
         Window owner = documentsTable.getScene() != null ? documentsTable.getScene().getWindow() : null;
         return chooser.showSaveDialog(owner);
@@ -590,6 +597,54 @@ public class DocumentsController implements ModuleController {
 
     private String orEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    private static boolean photoExists(String storedPath) {
+        Path path = resolvePhotoPath(storedPath);
+        return path != null && Files.exists(path);
+    }
+
+    private static void copyPhotoTo(String storedPath, Path destination) throws IOException {
+        Path source = resolvePhotoPath(storedPath);
+        if (source == null || !Files.exists(source)) {
+            throw new FileNotFoundException("Document photo not found");
+        }
+        if (destination.getParent() != null) {
+            Files.createDirectories(destination.getParent());
+        }
+        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private static Path resolvePhotoPath(String storedPath) {
+        if (storedPath == null || storedPath.isBlank()) {
+            return null;
+        }
+        try {
+            return Paths.get(storedPath);
+        } catch (InvalidPathException ex) {
+            return null;
+        }
+    }
+
+    private static String capturePhotoPath(File sourceFile) throws IOException {
+        if (sourceFile == null) {
+            return null;
+        }
+        if (!sourceFile.exists()) {
+            throw new FileNotFoundException("Selected photo no longer exists");
+        }
+        return sourceFile.getAbsolutePath();
+    }
+
+    private static Optional<String> getExtension(String fileName) {
+        if (fileName == null) {
+            return Optional.empty();
+        }
+        int idx = fileName.lastIndexOf('.');
+        if (idx < 0 || idx == fileName.length() - 1) {
+            return Optional.empty();
+        }
+        return Optional.of(fileName.substring(idx));
     }
 
     private static class IssueDocumentFormResult {

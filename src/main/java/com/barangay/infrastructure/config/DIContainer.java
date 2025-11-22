@@ -61,6 +61,7 @@ public class DIContainer {
     // Module 6: Barangay Officials Management
     private final RegisterOfficialUseCase registerOfficialUseCase;
     private final UpdateOfficialUseCase updateOfficialUseCase;
+    private final UpdateOfficialPhotoUseCase updateOfficialPhotoUseCase;
     private final EndTermUseCase endTermUseCase;
     private final ListOfficialsUseCase listOfficialsUseCase;
 
@@ -169,6 +170,9 @@ public class DIContainer {
 
         this.updateOfficialUseCase = new UpdateOfficialUseCase(
                 officialRepository, sessionManager);
+
+        this.updateOfficialPhotoUseCase = new UpdateOfficialPhotoUseCase(
+            officialRepository, sessionManager);
 
         this.endTermUseCase = new EndTermUseCase(
                 officialRepository, sessionManager);
@@ -297,6 +301,10 @@ public class DIContainer {
 
     public UpdateOfficialUseCase getUpdateOfficialUseCase() {
         return updateOfficialUseCase;
+    }
+
+    public UpdateOfficialPhotoUseCase getUpdateOfficialPhotoUseCase() {
+        return updateOfficialPhotoUseCase;
     }
 
     public EndTermUseCase getEndTermUseCase() {
