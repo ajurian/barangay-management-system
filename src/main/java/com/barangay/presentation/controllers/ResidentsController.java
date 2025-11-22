@@ -14,6 +14,7 @@ import com.barangay.presentation.util.TableCopyUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
@@ -25,8 +26,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -80,6 +83,15 @@ public class ResidentsController implements ModuleController {
     @FXML
     private Label residentCountLabel;
 
+    @FXML
+    private Button updateButton;
+
+    @FXML
+    private Button deactivateButton;
+
+    @FXML
+    private Button reactivateButton;
+
     private final ObservableList<Resident> backingList = FXCollections.observableArrayList();
 
     private DIContainer container;
@@ -95,6 +107,15 @@ public class ResidentsController implements ModuleController {
     public void refresh() {
         backingList.setAll(container.getResidentRepository().findAll());
         applyFilters();
+        if (residentsTable != null) {
+            residentsTable.getSelectionModel().clearSelection();
+        }
+        updateSelectionDependentActions(null);
+    }
+
+    @FXML
+    private void handleRefreshResidents() {
+        refresh();
     }
 
     @FXML
@@ -182,13 +203,31 @@ public class ResidentsController implements ModuleController {
         contactColumn.setCellValueFactory(new PropertyValueFactory<>("contact"));
         activeColumn.setCellValueFactory(new PropertyValueFactory<>("active"));
         residentsTable.setItems(FXCollections.observableArrayList());
+        residentsTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> updateSelectionDependentActions(newVal));
+        updateSelectionDependentActions(null);
         TableCopyUtil.attachCopyContextMenu(residentsTable,
                 resident -> resident != null && resident.getId() != null ? resident.getId().getValue() : null,
                 "Copy Resident ID");
     }
 
     private void configureFilters() {
-        genderFilter.setItems(FXCollections.observableArrayList(Gender.values()));
+        ObservableList<Gender> genders = FXCollections.observableArrayList();
+        genders.add(null);
+        genders.addAll(Arrays.asList(Gender.values()));
+        genderFilter.setItems(genders);
+        genderFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Gender gender) {
+                return gender == null ? "All" : gender.toString();
+            }
+
+            @Override
+            public Gender fromString(String string) {
+                return null;
+            }
+        });
+        genderFilter.getSelectionModel().selectFirst();
         genderFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
 
         statusFilter.setItems(FXCollections.observableArrayList("All", "Active", "Inactive"));
@@ -411,5 +450,20 @@ public class ResidentsController implements ModuleController {
         field.setText(value != null ? value : "");
         field.setEditable(false);
         field.setFocusTraversable(false);
+    }
+
+    private void updateSelectionDependentActions(Resident selected) {
+        boolean hasSelection = selected != null;
+        if (updateButton != null) {
+            updateButton.setDisable(!hasSelection);
+        }
+        if (deactivateButton != null) {
+            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            deactivateButton.setDisable(disable);
+        }
+        if (reactivateButton != null) {
+            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            reactivateButton.setDisable(disable);
+        }
     }
 }

@@ -337,7 +337,7 @@ public class DashboardController implements ModuleController {
             List<String> entries = requests.stream()
                     .sorted(Comparator.comparing(DocumentRequest::getCreatedAt).reversed())
                     .map(req -> {
-                        String status = req.getStatus().name().replace('_', ' ');
+                        String status = req.getStatus().toString();
                         if (req.getLinkedDocumentReference() != null) {
                             status += " • Issued: " + req.getLinkedDocumentReference();
                         }

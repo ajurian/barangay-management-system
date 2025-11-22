@@ -85,11 +85,11 @@
                 <HBox fx:id="residentActionsBox" spacing="12" alignment="CENTER_RIGHT"
                     visible="false" managed="false">
                     <children>
+                        <Button text="Refresh" onAction="#handleRefresh" />
                         <Button fx:id="submitApplicationButton" text="Submit Application"
                             onAction="#handleSubmitApplication" />
                         <Button fx:id="residentDownloadSlipButton" text="Download Slip"
                             onAction="#handleDownloadSlip" />
-                        <Button text="Refresh Status" onAction="#handleRefresh" />
                     </children>
                 </HBox>
             </children>

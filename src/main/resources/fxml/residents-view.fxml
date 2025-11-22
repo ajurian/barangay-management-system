@@ -47,10 +47,13 @@
                 <Insets top="16" right="16" bottom="16" left="16" />
             </padding>
             <children>
+                <Button text="Refresh" onAction="#handleRefreshResidents" />
                 <Button text="Register" onAction="#handleRegisterResident" />
-                <Button text="Update" onAction="#handleUpdateResident" />
-                <Button text="Deactivate" onAction="#handleDeactivateResident" />
-                <Button text="Reactivate" onAction="#handleReactivateResident" />
+                <Button fx:id="updateButton" text="Update" onAction="#handleUpdateResident" />
+                <Button fx:id="deactivateButton" text="Deactivate"
+                    onAction="#handleDeactivateResident" />
+                <Button fx:id="reactivateButton" text="Reactivate"
+                    onAction="#handleReactivateResident" />
             </children>
         </HBox>
     </bottom>

@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
@@ -50,6 +51,12 @@ public class BarangayInfoController implements ModuleController {
 
     @FXML
     private Button browseSealButton;
+
+    @FXML
+    private Label sealLabel;
+
+    @FXML
+    private HBox sealFieldContainer;
 
     @FXML
     private Label lastUpdatedLabel;
@@ -184,6 +191,7 @@ public class BarangayInfoController implements ModuleController {
         setEditable(contactField, canEdit);
         setEditable(emailField, canEdit);
         setEditable(sealField, canEdit);
+        setSealFieldVisibility(canEdit);
         if (saveButton != null) {
             saveButton.setDisable(!canEdit);
             saveButton.setVisible(canEdit);
@@ -197,6 +205,17 @@ public class BarangayInfoController implements ModuleController {
         if (viewOnlyLabel != null) {
             viewOnlyLabel.setVisible(!canEdit);
             viewOnlyLabel.setManaged(!canEdit);
+        }
+    }
+
+    private void setSealFieldVisibility(boolean visible) {
+        if (sealLabel != null) {
+            sealLabel.setVisible(visible);
+            sealLabel.setManaged(visible);
+        }
+        if (sealFieldContainer != null) {
+            sealFieldContainer.setVisible(visible);
+            sealFieldContainer.setManaged(visible);
         }
     }
 

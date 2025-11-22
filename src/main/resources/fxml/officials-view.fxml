@@ -58,10 +58,12 @@
                 <Insets top="16" right="16" bottom="16" left="16" />
             </padding>
             <children>
-                <Button text="Refresh" onAction="#handleRefresh" />
-                <Button text="Register" onAction="#handleRegisterOfficial" />
-                <Button text="Update Term" onAction="#handleUpdateOfficial" />
-                <Button text="End Term" onAction="#handleEndTerm" />
+                <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" />
+                <Button fx:id="registerButton" text="Register" onAction="#handleRegisterOfficial" />
+                <Button fx:id="viewPhotoButton" text="View Photo" onAction="#handleViewPhoto" />
+                <Button fx:id="updatePhotoButton" text="Update Photo" onAction="#handleUpdatePhoto" />
+                <Button fx:id="updateTermButton" text="Update Term" onAction="#handleUpdateOfficial" />
+                <Button fx:id="endTermButton" text="End Term" onAction="#handleEndTerm" />
             </children>
         </HBox>
     </bottom>

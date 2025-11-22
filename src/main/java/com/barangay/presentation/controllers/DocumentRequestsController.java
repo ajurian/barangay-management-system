@@ -17,8 +17,10 @@ import com.barangay.presentation.util.FormDialogUtil;
 import com.barangay.presentation.util.TableCopyUtil;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import javafx.util.StringConverter;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -139,7 +141,7 @@ public class DocumentRequestsController implements ModuleController {
         if (!residentMode && searchField != null) {
             searchField.clear();
         }
-        statusFilter.getSelectionModel().clearSelection();
+        statusFilter.getSelectionModel().selectFirst();
         loadRequests();
     }
 
@@ -320,6 +322,9 @@ public class DocumentRequestsController implements ModuleController {
         updatedColumn.setCellValueFactory(cell -> new SimpleStringProperty(
                 formatDateTime(cell.getValue().getUpdatedAt())));
         requestsTable.setItems(backingList);
+        requestsTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> updateSelectionDependentActions(newVal));
+        updateSelectionDependentActions(null);
         TableCopyUtil.attachCopyContextMenu(requestsTable,
                 request -> request != null ? request.getId() : null,
                 "Copy Request ID");
@@ -328,8 +333,28 @@ public class DocumentRequestsController implements ModuleController {
     private void configureFilters() {
         if (searchField != null) {
             HBox.setHgrow(searchField, Priority.ALWAYS);
+            if (!residentMode) {
+                searchField.textProperty().addListener((obs, oldVal, newVal) -> loadRequests());
+            }
         }
-        statusFilter.setItems(FXCollections.observableArrayList(DocumentRequestStatus.values()));
+        ObservableList<DocumentRequestStatus> statuses = FXCollections.observableArrayList();
+        statuses.add(null);
+        statuses.addAll(Arrays.asList(DocumentRequestStatus.values()));
+        statusFilter.setItems(statuses);
+        statusFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(DocumentRequestStatus status) {
+                return status == null ? "All" : status.toString();
+            }
+
+            @Override
+            public DocumentRequestStatus fromString(String string) {
+                return null;
+            }
+        });
+        statusFilter.getSelectionModel().selectFirst();
+        statusFilter.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldVal, newVal) -> loadRequests());
     }
 
     private void configureRoleView() {
@@ -371,6 +396,10 @@ public class DocumentRequestsController implements ModuleController {
         backingList.setAll(requests);
         requestCountLabel.setText(String.format(residentMode ? "You have %d request(s)" : "%d request(s) found",
                 requests.size()));
+        if (requestsTable != null) {
+            requestsTable.getSelectionModel().clearSelection();
+        }
+        updateSelectionDependentActions(null);
     }
 
     private void setVisible(javafx.scene.Node node, boolean visible) {
@@ -390,5 +419,24 @@ public class DocumentRequestsController implements ModuleController {
             return "--";
         }
         return DATE_TIME_FORMATTER.format(dateTime);
+    }
+
+    private void updateSelectionDependentActions(DocumentRequest selected) {
+        boolean hasSelection = selected != null;
+        if (viewDetailsButton != null) {
+            viewDetailsButton.setDisable(!hasSelection);
+        }
+        if (residentMode) {
+            return;
+        }
+        if (markUnderReviewButton != null) {
+            markUnderReviewButton.setDisable(!hasSelection);
+        }
+        if (approveButton != null) {
+            approveButton.setDisable(!hasSelection);
+        }
+        if (rejectButton != null) {
+            rejectButton.setDisable(!hasSelection);
+        }
     }
 }

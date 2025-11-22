@@ -23,6 +23,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.util.StringConverter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -84,6 +85,11 @@ public class UsersController implements ModuleController {
     @Override
     public void refresh() {
         loadUsers();
+    }
+
+    @FXML
+    private void handleRefreshUsers() {
+        refresh();
     }
 
     @FXML
@@ -309,11 +315,29 @@ public class UsersController implements ModuleController {
         roleColumn.setCellValueFactory(new PropertyValueFactory<>("role"));
         activeColumn.setCellValueFactory(new PropertyValueFactory<>("active"));
         usersTable.setItems(backingList);
+        usersTable.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldVal, newVal) -> updateSelectionDependentActions(newVal));
+        updateSelectionDependentActions(null);
     }
 
     private void configureFilters() {
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-        roleFilter.setItems(FXCollections.observableArrayList(UserRole.values()));
+        ObservableList<UserRole> roles = FXCollections.observableArrayList();
+        roles.add(null);
+        roles.addAll(Arrays.asList(UserRole.values()));
+        roleFilter.setItems(roles);
+        roleFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(UserRole role) {
+                return role == null ? "All" : role.toString();
+            }
+
+            @Override
+            public UserRole fromString(String string) {
+                return null;
+            }
+        });
+        roleFilter.getSelectionModel().selectFirst();
         roleFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
     }
 
@@ -321,6 +345,10 @@ public class UsersController implements ModuleController {
         ListUsersUseCase listUsersUseCase = container.getListUsersUseCase();
         backingList.setAll(listUsersUseCase.execute());
         applyFilters();
+        if (usersTable != null) {
+            usersTable.getSelectionModel().clearSelection();
+        }
+        updateSelectionDependentActions(null);
     }
 
     private void applyFilters() {
@@ -334,5 +362,23 @@ public class UsersController implements ModuleController {
 
         usersTable.setItems(FXCollections.observableArrayList(filtered));
         userCountLabel.setText(String.format("Showing %d of %d users", filtered.size(), backingList.size()));
+    }
+
+    private void updateSelectionDependentActions(User selected) {
+        boolean hasSelection = selected != null;
+        if (deactivateButton != null) {
+            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            deactivateButton.setDisable(disable);
+        }
+        if (reactivateButton != null) {
+            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            reactivateButton.setDisable(disable);
+        }
+        if (changeRoleButton != null) {
+            changeRoleButton.setDisable(!hasSelection);
+        }
+        if (resetPasswordButton != null) {
+            resetPasswordButton.setDisable(!hasSelection);
+        }
     }
 }

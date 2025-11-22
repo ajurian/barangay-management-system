@@ -61,7 +61,7 @@ public class GenerateAppointmentSlipUseCase {
                 barangayInfo != null ? barangayInfo.getEmail() : null,
                 barangayInfo != null ? barangayInfo.getSealPath() : null,
                 application.getId(),
-                application.getApplicationType().name().replace('_', ' '),
+                application.getApplicationType().toString(),
                 application.getResidentId().getValue(),
                 resident.getFullName(),
                 resident.getContact(),

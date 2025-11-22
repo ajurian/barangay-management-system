@@ -29,20 +29,27 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -172,8 +179,8 @@ public class VoterApplicationsController implements ModuleController {
             return;
         }
         searchField.clear();
-        statusFilter.getSelectionModel().clearSelection();
-        typeFilter.getSelectionModel().clearSelection();
+        statusFilter.getSelectionModel().selectFirst();
+        typeFilter.getSelectionModel().selectFirst();
         applyFilters();
     }
 
@@ -387,12 +394,11 @@ public class VoterApplicationsController implements ModuleController {
         }));
 
         content.getChildren().add(createDetailsSection("Supporting Information", new String[][] {
-                { "Resident ID", selected.getResidentId().getValue() },
-                { "Current Registration Details",
-                        formatValue(selected.getCurrentRegistrationDetails(), "Not provided") },
-                { "Valid ID (Front)", formatValue(selected.getValidIdFrontPath()) },
-                { "Valid ID (Back)", formatValue(selected.getValidIdBackPath()) }
+            { "Resident ID", selected.getResidentId().getValue() },
+            { "Current Registration Details",
+                formatValue(selected.getCurrentRegistrationDetails(), "Not provided") }
         }));
+        content.getChildren().add(createIdPhotoSection(selected));
 
         content.getChildren().add(createDetailsSection("Appointment", new String[][] {
                 { "Schedule", formatDateTime(selected.getAppointmentDateTime()) },
@@ -446,8 +452,40 @@ public class VoterApplicationsController implements ModuleController {
     }
 
     private void configureFilters() {
-        statusFilter.setItems(FXCollections.observableArrayList(ApplicationStatus.values()));
-        typeFilter.setItems(FXCollections.observableArrayList(ApplicationType.values()));
+        ObservableList<ApplicationStatus> statuses = FXCollections.observableArrayList();
+        statuses.add(null);
+        statuses.addAll(Arrays.asList(ApplicationStatus.values()));
+        statusFilter.setItems(statuses);
+        statusFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ApplicationStatus status) {
+                return status == null ? "All" : formatEnum(status);
+            }
+
+            @Override
+            public ApplicationStatus fromString(String string) {
+                return null;
+            }
+        });
+
+        ObservableList<ApplicationType> types = FXCollections.observableArrayList();
+        types.add(null);
+        types.addAll(Arrays.asList(ApplicationType.values()));
+        typeFilter.setItems(types);
+        typeFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ApplicationType type) {
+                return type == null ? "All" : formatEnum(type);
+            }
+
+            @Override
+            public ApplicationType fromString(String string) {
+                return null;
+            }
+        });
+
+        statusFilter.getSelectionModel().selectFirst();
+        typeFilter.getSelectionModel().selectFirst();
 
         statusFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         typeFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -744,7 +782,7 @@ public class VoterApplicationsController implements ModuleController {
         if (value == null) {
             return "--";
         }
-        return value.name().replace('_', ' ');
+        return value.toString();
     }
 
     private String formatValue(String value) {
@@ -784,6 +822,66 @@ public class VoterApplicationsController implements ModuleController {
         value.setWrapText(true);
         grid.add(label, 0, rowIndex);
         grid.add(value, 1, rowIndex);
+    }
+
+    private VBox createIdPhotoSection(VoterApplication application) {
+        VBox section = new VBox(6);
+        Label header = new Label("Valid ID Photos");
+        header.setStyle("-fx-font-weight: bold;");
+        HBox actions = new HBox(8);
+        Button frontButton = new Button("View Front ID");
+        frontButton.setDisable(!isPhotoAvailable(application.getValidIdFrontPath()));
+        frontButton.setOnAction(evt -> showIdPhoto("Valid ID - Front", application.getValidIdFrontPath()));
+        Button backButton = new Button("View Back ID");
+        backButton.setDisable(!isPhotoAvailable(application.getValidIdBackPath()));
+        backButton.setOnAction(evt -> showIdPhoto("Valid ID - Back", application.getValidIdBackPath()));
+        actions.getChildren().addAll(frontButton, backButton);
+        section.getChildren().addAll(header, actions);
+        return section;
+    }
+
+    private boolean isPhotoAvailable(String storedPath) {
+        if (storedPath == null || storedPath.isBlank()) {
+            return false;
+        }
+        try {
+            Path path = Paths.get(storedPath);
+            return Files.exists(path);
+        } catch (InvalidPathException ex) {
+            return false;
+        }
+    }
+
+    private void showIdPhoto(String title, String storedPath) {
+        if (storedPath == null || storedPath.isBlank()) {
+            DialogUtil.showWarning(title, "No file path recorded for this ID side.");
+            return;
+        }
+        Path path;
+        try {
+            path = Paths.get(storedPath);
+        } catch (InvalidPathException ex) {
+            DialogUtil.showError(title, "Stored path is invalid.");
+            return;
+        }
+        if (!Files.exists(path)) {
+            DialogUtil.showWarning(title, "The referenced ID image could not be found.");
+            return;
+        }
+        try {
+            Image image = new Image(path.toUri().toString(), 640, 720, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(520);
+            imageView.setSmooth(true);
+            Dialog<Void> preview = new Dialog<>();
+            preview.setTitle(title);
+            preview.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+            preview.getDialogPane().setContent(imageView);
+            preview.showAndWait();
+        } catch (Exception ex) {
+            DialogUtil.showError(title, "Unable to load ID image: " + ex.getMessage());
+        }
     }
 
     private static class ScheduleInput {

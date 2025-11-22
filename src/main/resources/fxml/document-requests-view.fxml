@@ -25,6 +25,7 @@
                 <HBox fx:id="filterBar" spacing="10" alignment="CENTER_LEFT">
                     <TextField fx:id="searchField" promptText="Search by ID, resident, purpose"
                         HBox.hgrow="ALWAYS" />
+                    <Label text="Status" />
                     <ChoiceBox fx:id="statusFilter" prefWidth="180" />
                     <Button text="Apply" onAction="#handleApplyFilters" />
                     <Button text="Clear" onAction="#handleClearFilters" />
@@ -53,13 +54,13 @@
             <children>
                 <Label fx:id="requestCountLabel" text="Loading requests..." />
                 <HBox spacing="8" alignment="CENTER_RIGHT">
-                    <Button fx:id="viewDetailsButton" text="View Details"
-                        onAction="#handleViewDetails" />
                     <Button fx:id="refreshButton" text="Refresh" onAction="#handleRefresh" />
                     <HBox fx:id="residentActionsBox" spacing="8" alignment="CENTER_RIGHT">
                         <Button fx:id="newRequestButton" text="New Request"
-                            onAction="#handleNewRequest" />
+                        onAction="#handleNewRequest" />
                     </HBox>
+                    <Button fx:id="viewDetailsButton" text="View Details"
+                        onAction="#handleViewDetails" />
                     <HBox fx:id="staffActionsBox" spacing="8" alignment="CENTER_RIGHT">
                         <Button fx:id="markUnderReviewButton" text="Under Review"
                             onAction="#handleMarkUnderReview" />

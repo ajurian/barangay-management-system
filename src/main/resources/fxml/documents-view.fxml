@@ -73,11 +73,13 @@
                                 <Insets top="16" right="16" bottom="16" left="16" />
                             </padding>
                             <children>
+                                <Button text="Refresh" onAction="#handleRefreshDocuments" />
                                 <Button fx:id="issueDocumentButton" text="Issue Document"
                                     onAction="#handleIssueDocument" />
+                                <Button fx:id="viewDetailsButton" text="View Details"
+                                    onAction="#handleViewDetails" />
                                 <Button fx:id="downloadPhotoButton" text="Download Photo"
                                     onAction="#handleDownloadPhoto" />
-                                <Button text="View Details" onAction="#handleViewDetails" />
                             </children>
                         </HBox>
                     </bottom>
@@ -120,7 +122,7 @@
                             </padding>
                             <children>
                                 <Button text="Refresh" onAction="#handleRefreshQueue" />
-                                <Button fx:id="issueFromRequestButton" text="Issue Selected"
+                                <Button fx:id="issueFromRequestButton" text="Issue Document"
                                     onAction="#handleIssueFromRequest" />
                             </children>
                         </HBox>

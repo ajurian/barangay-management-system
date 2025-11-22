@@ -42,6 +42,7 @@
                 <Insets top="16" right="16" bottom="16" left="16" />
             </padding>
             <children>
+                <Button text="Refresh" onAction="#handleRefreshUsers" />
                 <Button fx:id="createButton" text="Create User" onAction="#handleCreateUser" />
                 <Button fx:id="deactivateButton" text="Deactivate" onAction="#handleDeactivateUser" />
                 <Button fx:id="reactivateButton" text="Reactivate" onAction="#handleReactivateUser" />

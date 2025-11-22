@@ -108,7 +108,7 @@ public class ProfileController implements ModuleController {
         }
         currentUser = sessionManager.getCurrentUser();
         usernameLabel.setText(currentUser.getUsername());
-        roleLabel.setText(currentUser.getRole().name().replace('_', ' '));
+        roleLabel.setText(currentUser.getRole().toString());
         if (residentIdField != null) {
             if (currentUser.getLinkedResidentId() != null) {
                 residentIdField.setText(currentUser.getLinkedResidentId().getValue());
@@ -278,7 +278,7 @@ public class ProfileController implements ModuleController {
         }
         if (residentGenderValueLabel != null) {
             residentGenderValueLabel.setText(resident.getGender() != null
-                    ? resident.getGender().name().replace('_', ' ')
+                    ? resident.getGender().toString()
                     : "Not provided");
         }
         if (residentContactValueLabel != null) {

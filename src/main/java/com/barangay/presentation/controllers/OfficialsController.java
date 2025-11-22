@@ -8,12 +8,14 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.OfficialPhotoStorage;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
@@ -25,8 +27,16 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import javafx.util.StringConverter;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +46,8 @@ import java.util.stream.Collectors;
  * Module controller for managing barangay officials.
  */
 public class OfficialsController implements ModuleController {
+
+    private static final String ALL_LABEL = "All";
 
     @FXML
     private TableView<BarangayOfficial> officialsTable;
@@ -76,6 +88,24 @@ public class OfficialsController implements ModuleController {
     @FXML
     private HBox managementActionsBox;
 
+    @FXML
+    private Button viewPhotoButton;
+
+    @FXML
+    private Button updatePhotoButton;
+
+    @FXML
+    private Button updateTermButton;
+
+    @FXML
+    private Button endTermButton;
+
+    @FXML
+    private Button registerButton;
+
+    @FXML
+    private Button refreshButton;
+
     private final ObservableList<BarangayOfficial> backingList = FXCollections.observableArrayList();
 
     private DIContainer container;
@@ -106,8 +136,8 @@ public class OfficialsController implements ModuleController {
     @FXML
     private void handleClearFilters() {
         searchField.clear();
-        positionFilter.getSelectionModel().clearSelection();
-        currentFilter.getSelectionModel().clearSelection();
+        positionFilter.getSelectionModel().selectFirst();
+        currentFilter.getSelectionModel().selectFirst();
         applyFilters();
     }
 
@@ -183,6 +213,61 @@ public class OfficialsController implements ModuleController {
         }
     }
 
+    @FXML
+    private void handleViewPhoto() {
+        BarangayOfficial selected = getSelectedOfficial();
+        if (selected == null) {
+            return;
+        }
+        Optional<File> photo = OfficialPhotoStorage.resolvePhoto(selected.getOfficialId());
+        if (photo.isEmpty()) {
+            DialogUtil.showWarning("View Photo", "No photo uploaded for the selected official yet.");
+            return;
+        }
+        Image image;
+        try {
+            image = new Image(photo.get().toURI().toString(), 400, 480, true, true);
+        } catch (Exception ex) {
+            DialogUtil.showError("View Photo", "Unable to load photo: " + ex.getMessage());
+            return;
+        }
+        ImageView preview = new ImageView(image);
+        preview.setPreserveRatio(true);
+        preview.setFitWidth(360);
+        preview.setSmooth(true);
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Official Photo");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setContent(preview);
+        dialog.showAndWait();
+    }
+
+    @FXML
+    private void handleUpdatePhoto() {
+        if (!canManageOfficials) {
+            DialogUtil.showWarning("Update Photo", "Only administrators can update photos.");
+            return;
+        }
+        BarangayOfficial selected = getSelectedOfficial();
+        if (selected == null) {
+            return;
+        }
+        FileChooser chooser = createImageChooser("Select Official Photo");
+        Window owner = officialsTable.getScene() != null ? officialsTable.getScene().getWindow() : null;
+        File chosen = chooser.showOpenDialog(owner);
+        if (chosen == null) {
+            return;
+        }
+        try {
+            OfficialPhotoStorage.savePhoto(selected.getOfficialId(), chosen);
+            DialogUtil.showInfo("Update Photo", "Photo updated successfully.");
+            updateSelectionDependentActions(selected);
+        } catch (IOException ex) {
+            DialogUtil.showError("Update Photo", ex.getMessage());
+        }
+    }
+
     private void configureTable() {
         nameColumn.setCellValueFactory(
                 cell -> new SimpleStringProperty(Optional.ofNullable(cell.getValue().getOfficialName()).orElse("--")));
@@ -194,11 +279,31 @@ public class OfficialsController implements ModuleController {
         currentColumn.setCellValueFactory(cell -> new SimpleBooleanProperty(cell.getValue().isCurrent()));
 
         officialsTable.setItems(FXCollections.observableArrayList());
+        officialsTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> updateSelectionDependentActions(newVal));
+        updateSelectionDependentActions(null);
     }
 
     private void configureFilters() {
-        positionFilter.setItems(FXCollections.observableArrayList(OfficialPosition.values()));
-        currentFilter.setItems(FXCollections.observableArrayList("Current", "Former"));
+        ObservableList<OfficialPosition> positions = FXCollections.observableArrayList();
+        positions.add(null);
+        positions.addAll(Arrays.asList(OfficialPosition.values()));
+        positionFilter.setItems(positions);
+        positionFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(OfficialPosition position) {
+                return position == null ? ALL_LABEL : position.toString();
+            }
+
+            @Override
+            public OfficialPosition fromString(String string) {
+                return null;
+            }
+        });
+        positionFilter.getSelectionModel().selectFirst();
+
+        currentFilter.setItems(FXCollections.observableArrayList(ALL_LABEL, "Current", "Former"));
+        currentFilter.getSelectionModel().selectFirst();
 
         positionFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         currentFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -221,7 +326,7 @@ public class OfficialsController implements ModuleController {
         List<BarangayOfficial> filtered = backingList.stream()
                 .filter(official -> position == null || official.getPosition() == position)
                 .filter(official -> {
-                    if (currentValue == null) {
+                    if (currentValue == null || ALL_LABEL.equals(currentValue)) {
                         return true;
                     }
                     if ("Current".equals(currentValue)) {
@@ -237,6 +342,8 @@ public class OfficialsController implements ModuleController {
 
         officialsTable.setItems(FXCollections.observableArrayList(filtered));
         officialCountLabel.setText(String.format("Showing %d of %d officials", filtered.size(), backingList.size()));
+        officialsTable.getSelectionModel().clearSelection();
+        updateSelectionDependentActions(null);
     }
 
     private BarangayOfficial getSelectedOfficial() {
@@ -341,18 +448,69 @@ public class OfficialsController implements ModuleController {
 
     private void configureRoleView() {
         if (managementActionsBox != null) {
-            managementActionsBox.setVisible(canManageOfficials);
-            managementActionsBox.setManaged(canManageOfficials);
+            managementActionsBox.setVisible(true);
+            managementActionsBox.setManaged(true);
         }
-        if (viewerInfoLabel != null) {
-            if (canManageOfficials) {
+        if (canManageOfficials) {
+            setButtonVisible(registerButton, true);
+            setButtonVisible(updatePhotoButton, true);
+            setButtonVisible(updateTermButton, true);
+            setButtonVisible(endTermButton, true);
+            if (viewerInfoLabel != null) {
                 viewerInfoLabel.setVisible(false);
                 viewerInfoLabel.setManaged(false);
-            } else {
-                viewerInfoLabel.setText("View-only mode. Contact an administrator for updates.");
+            }
+        } else {
+            setButtonVisible(registerButton, false);
+            setButtonVisible(updatePhotoButton, false);
+            setButtonVisible(updateTermButton, false);
+            setButtonVisible(endTermButton, false);
+            if (viewerInfoLabel != null) {
+                viewerInfoLabel.setText("View-only mode. You can preview official photos.");
                 viewerInfoLabel.setVisible(true);
                 viewerInfoLabel.setManaged(true);
             }
         }
+        if (!canManageOfficials && refreshButton != null) {
+            refreshButton.setDisable(false);
+        }
+        if (!canManageOfficials && viewPhotoButton != null) {
+            viewPhotoButton.setDisable(true);
+        }
+    }
+
+    private void setButtonVisible(Button button, boolean visible) {
+        if (button == null) {
+            return;
+        }
+        button.setVisible(visible);
+        button.setManaged(visible);
+    }
+
+    private void updateSelectionDependentActions(BarangayOfficial selected) {
+        boolean hasSelection = selected != null;
+        if (viewPhotoButton != null) {
+            boolean enable = hasSelection && selected != null
+                    && OfficialPhotoStorage.photoExists(selected.getOfficialId());
+            viewPhotoButton.setDisable(!enable);
+        }
+        if (updatePhotoButton != null) {
+            updatePhotoButton.setDisable(!hasSelection);
+        }
+        if (updateTermButton != null) {
+            updateTermButton.setDisable(!hasSelection);
+        }
+        if (endTermButton != null) {
+            boolean enable = hasSelection && selected != null && selected.isCurrent();
+            endTermButton.setDisable(!enable);
+        }
+    }
+
+    private FileChooser createImageChooser(String title) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(title);
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+        return chooser;
     }
 }

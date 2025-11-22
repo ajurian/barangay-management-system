@@ -19,6 +19,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
@@ -33,11 +34,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -87,16 +90,19 @@ public class DocumentsController implements ModuleController {
     private Label documentCountLabel;
 
     @FXML
-    private javafx.scene.layout.HBox filterBar;
+    private HBox filterBar;
 
     @FXML
     private Label residentInfoLabel;
 
     @FXML
-    private javafx.scene.control.Button issueDocumentButton;
+    private Button issueDocumentButton;
 
     @FXML
-    private javafx.scene.control.Button downloadPhotoButton;
+    private Button viewDetailsButton;
+
+    @FXML
+    private Button downloadPhotoButton;
 
     @FXML
     private Tab fromRequestsTab;
@@ -123,7 +129,7 @@ public class DocumentsController implements ModuleController {
     private Label requestQueueLabel;
 
     @FXML
-    private javafx.scene.control.Button issueFromRequestButton;
+    private Button issueFromRequestButton;
 
     private final ObservableList<Document> backingList = FXCollections.observableArrayList();
     private final ObservableList<DocumentRequest> requestQueueList = FXCollections.observableArrayList();
@@ -157,7 +163,7 @@ public class DocumentsController implements ModuleController {
         if (documentsTable != null) {
             documentsTable.getSelectionModel().clearSelection();
         }
-        updateDownloadButtonState(null);
+        updateDocumentSelectionActions(null);
     }
 
     @FXML
@@ -169,12 +175,17 @@ public class DocumentsController implements ModuleController {
     }
 
     @FXML
+    private void handleRefreshDocuments() {
+        refresh();
+    }
+
+    @FXML
     private void handleClearFilters() {
         if (residentMode) {
             return;
         }
         searchField.clear();
-        typeFilter.getSelectionModel().clearSelection();
+        typeFilter.getSelectionModel().selectFirst();
         startDatePicker.setValue(null);
         endDatePicker.setValue(null);
         applyFilters();
@@ -247,8 +258,8 @@ public class DocumentsController implements ModuleController {
                 .setCellValueFactory(cell -> new SimpleStringProperty(optionalString(cell.getValue().getIssuedBy())));
         documentsTable.setItems(FXCollections.observableArrayList());
         documentsTable.getSelectionModel().selectedItemProperty()
-            .addListener((obs, oldVal, newVal) -> updateDownloadButtonState(newVal));
-        updateDownloadButtonState(null);
+            .addListener((obs, oldVal, newVal) -> updateDocumentSelectionActions(newVal));
+        updateDocumentSelectionActions(null);
         TableCopyUtil.attachCopyContextMenu(documentsTable,
                 document -> document != null && document.getReference() != null
                         ? document.getReference().getValue()
@@ -257,7 +268,22 @@ public class DocumentsController implements ModuleController {
     }
 
     private void configureFilters() {
-        typeFilter.setItems(FXCollections.observableArrayList(DocumentType.values()));
+        ObservableList<DocumentType> items = FXCollections.observableArrayList();
+        items.add(null);
+        items.addAll(Arrays.asList(DocumentType.values()));
+        typeFilter.setItems(items);
+        typeFilter.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(DocumentType type) {
+                return type == null ? "All" : type.toString();
+            }
+
+            @Override
+            public DocumentType fromString(String string) {
+                return null;
+            }
+        });
+        typeFilter.getSelectionModel().selectFirst();
     }
 
     private void configureRequestQueueTable() {
@@ -272,6 +298,9 @@ public class DocumentsController implements ModuleController {
                 .setCellValueFactory(cell -> new SimpleStringProperty(optionalString(cell.getValue().getPurpose())));
         queueStatusColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getStatus()));
         requestQueueTable.setItems(requestQueueList);
+        requestQueueTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> updateRequestQueueButtonState(newVal));
+        updateRequestQueueButtonState(null);
     }
 
     private void loadAllDocuments() {
@@ -389,6 +418,10 @@ public class DocumentsController implements ModuleController {
         if (requestQueueLabel != null) {
             requestQueueLabel.setText(String.format("%d approved request(s) ready for issuance", requests.size()));
         }
+        if (requestQueueTable != null) {
+            requestQueueTable.getSelectionModel().clearSelection();
+        }
+        updateRequestQueueButtonState(null);
     }
 
     private void setNodeVisible(javafx.scene.Node node, boolean visible) {
@@ -399,13 +432,25 @@ public class DocumentsController implements ModuleController {
         node.setManaged(visible);
     }
 
-    private void updateDownloadButtonState(Document selected) {
+    private void updateDocumentSelectionActions(Document selected) {
+        boolean hasSelection = selected != null;
+        if (viewDetailsButton != null) {
+            viewDetailsButton.setDisable(!hasSelection);
+        }
         if (downloadPhotoButton == null) {
             return;
         }
-        boolean disable = selected == null || !selected.hasPhoto()
-                || !DocumentPhotoStorage.photoExists(selected.getPhotoPath());
-        downloadPhotoButton.setDisable(disable);
+        boolean canDownload = hasSelection && selected.hasPhoto()
+                && DocumentPhotoStorage.photoExists(selected.getPhotoPath());
+        downloadPhotoButton.setDisable(!canDownload);
+    }
+
+    private void updateRequestQueueButtonState(DocumentRequest selected) {
+        if (issueFromRequestButton == null) {
+            return;
+        }
+        boolean enable = selected != null && selected.getStatus() == DocumentRequestStatus.APPROVED;
+        issueFromRequestButton.setDisable(!enable);
     }
 
     private Optional<IssueDocumentFormResult> showIssueDocumentDialog(DocumentRequest request) {
@@ -439,7 +484,7 @@ public class DocumentsController implements ModuleController {
         photoField.setPromptText("No file selected");
         photoField.setEditable(false);
         photoField.setPrefWidth(220);
-        javafx.scene.control.Button browsePhotoButton = new javafx.scene.control.Button("Select Photo");
+        Button browsePhotoButton = new Button("Select Photo");
         File[] selectedPhoto = new File[1];
         browsePhotoButton.setOnAction(evt -> {
             Window owner = dialog.getDialogPane().getScene() != null
