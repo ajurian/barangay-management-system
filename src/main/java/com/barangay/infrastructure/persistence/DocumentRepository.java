@@ -21,9 +21,9 @@ public class DocumentRepository implements IDocumentRepository {
     @Override
     public void save(Document document) {
         String sql = "INSERT INTO documents " +
-                "(reference, resident_id, type, purpose, issued_date, valid_until, " +
-                "issued_by, additional_info, request_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "(reference, resident_id, type, purpose, issued_date, valid_until, " +
+            "issued_by, additional_info, photo_path, request_id, created_at) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -36,8 +36,9 @@ public class DocumentRepository implements IDocumentRepository {
             pstmt.setString(6, document.getValidUntil() != null ? document.getValidUntil().toString() : null);
             pstmt.setString(7, document.getIssuedBy());
             pstmt.setString(8, document.getAdditionalInfo());
-            pstmt.setString(9, document.getOriginRequestId());
-            pstmt.setString(10, document.getCreatedAt().toString());
+            pstmt.setString(9, document.getPhotoPath());
+            pstmt.setString(10, document.getOriginRequestId());
+            pstmt.setString(11, document.getCreatedAt().toString());
 
             pstmt.executeUpdate();
 
@@ -314,6 +315,7 @@ public class DocumentRepository implements IDocumentRepository {
 
         document.setAdditionalInfo(rs.getString("additional_info"));
         document.setOriginRequestId(rs.getString("request_id"));
+        document.setPhotoPath(rs.getString("photo_path"));
 
         return document;
     }

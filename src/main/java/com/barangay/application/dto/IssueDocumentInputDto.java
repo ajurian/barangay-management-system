@@ -13,20 +13,28 @@ public class IssueDocumentInputDto {
     private final LocalDate validUntil;
     private final String additionalInfo; // JSON string for document-specific data
     private final String requestId; // Optional link to a document request
+    private final String photoPath;
 
     public IssueDocumentInputDto(String residentId, DocumentType documentType,
             String purpose, LocalDate validUntil, String additionalInfo) {
-        this(residentId, documentType, purpose, validUntil, additionalInfo, null);
+        this(residentId, documentType, purpose, validUntil, additionalInfo, null, null);
     }
 
     public IssueDocumentInputDto(String residentId, DocumentType documentType,
             String purpose, LocalDate validUntil, String additionalInfo, String requestId) {
+        this(residentId, documentType, purpose, validUntil, additionalInfo, requestId, null);
+    }
+
+    public IssueDocumentInputDto(String residentId, DocumentType documentType,
+            String purpose, LocalDate validUntil, String additionalInfo,
+            String requestId, String photoPath) {
         this.residentId = residentId;
         this.documentType = documentType;
         this.purpose = purpose;
         this.validUntil = validUntil;
         this.additionalInfo = additionalInfo;
         this.requestId = requestId;
+        this.photoPath = photoPath;
     }
 
     public String getResidentId() {
@@ -51,5 +59,9 @@ public class IssueDocumentInputDto {
 
     public String getRequestId() {
         return requestId;
+    }
+
+    public String getPhotoPath() {
+        return photoPath;
     }
 }

@@ -11,6 +11,7 @@ import com.barangay.domain.entities.ResidentId;
 import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
+import com.barangay.presentation.util.DocumentPhotoStorage;
 import com.barangay.presentation.util.FormDialogUtil;
 import com.barangay.presentation.util.TableCopyUtil;
 import javafx.beans.property.SimpleObjectProperty;
@@ -29,7 +30,12 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +96,9 @@ public class DocumentsController implements ModuleController {
     private javafx.scene.control.Button issueDocumentButton;
 
     @FXML
+    private javafx.scene.control.Button downloadPhotoButton;
+
+    @FXML
     private Tab fromRequestsTab;
 
     @FXML
@@ -145,6 +154,10 @@ public class DocumentsController implements ModuleController {
             applyFilters();
             loadRequestQueue();
         }
+        if (documentsTable != null) {
+            documentsTable.getSelectionModel().clearSelection();
+        }
+        updateDownloadButtonState(null);
     }
 
     @FXML
@@ -173,64 +186,8 @@ public class DocumentsController implements ModuleController {
             DialogUtil.showInfo("Issue Document", "Residents can only view issued documents.");
             return;
         }
-        Dialog<IssueDocumentInputDto> dialog = new Dialog<>();
-        dialog.setTitle("Issue Document");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        TextField residentIdField = new TextField();
-        residentIdField.setPromptText("Resident ID (e.g. BR-2024-0000000001)");
-        ChoiceBox<DocumentType> documentTypeChoice = new ChoiceBox<>(
-                FXCollections.observableArrayList(DocumentType.values()));
-        documentTypeChoice.getSelectionModel().selectFirst();
-        TextField purposeField = new TextField();
-        purposeField.setPromptText("Purpose");
-        DatePicker validUntilPicker = new DatePicker();
-        validUntilPicker.setPromptText("Valid Until (optional)");
-        TextArea additionalInfoArea = new TextArea();
-        additionalInfoArea.setPromptText("Additional info (JSON or notes, optional)");
-        additionalInfoArea.setPrefRowCount(3);
-
-        int row = 0;
-        grid.addRow(row++, new Label("Resident ID"), residentIdField);
-        grid.addRow(row++, new Label("Document Type"), documentTypeChoice);
-        grid.addRow(row++, new Label("Purpose"), purposeField);
-        grid.addRow(row++, new Label("Valid Until"), validUntilPicker);
-        grid.addRow(row, new Label("Additional Info"), additionalInfoArea);
-
-        dialog.getDialogPane().setContent(grid);
-        FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
-            if (residentIdField.getText() == null || residentIdField.getText().trim().isEmpty()) {
-                return Optional.of("Resident ID is required.");
-            }
-            return Optional.empty();
-        }, "Issue Document");
-
-        dialog.setResultConverter(button -> {
-            if (button == ButtonType.OK) {
-                return new IssueDocumentInputDto(
-                        residentIdField.getText().trim(),
-                        documentTypeChoice.getValue(),
-                        purposeField.getText(),
-                        validUntilPicker.getValue(),
-                        additionalInfoArea.getText());
-            }
-            return null;
-        });
-
-        Optional<IssueDocumentInputDto> result = dialog.showAndWait();
-        result.ifPresent(input -> {
-            try {
-                String reference = container.getIssueDocumentUseCase().execute(input);
-                DialogUtil.showInfo("Issue Document", "Document issued with reference: " + reference);
-                refresh();
-            } catch (Exception ex) {
-                DialogUtil.showError("Issue Document", ex.getMessage());
-            }
-        });
+        Optional<IssueDocumentFormResult> result = showIssueDocumentDialog(null);
+        result.ifPresent(this::processDocumentIssuance);
     }
 
     @FXML
@@ -253,6 +210,29 @@ public class DocumentsController implements ModuleController {
         DialogUtil.showInfo("Document Details", details);
     }
 
+    @FXML
+    private void handleDownloadPhoto() {
+        Document selected = documentsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            DialogUtil.showWarning("Download Photo", "Please select a document first.");
+            return;
+        }
+        if (!DocumentPhotoStorage.photoExists(selected.getPhotoPath())) {
+            DialogUtil.showWarning("Download Photo", "No uploaded photo found for the selected document.");
+            return;
+        }
+        File destination = choosePhotoDestination(selected);
+        if (destination == null) {
+            return;
+        }
+        try {
+            DocumentPhotoStorage.copyPhotoTo(selected.getPhotoPath(), destination.toPath());
+            DialogUtil.showInfo("Download Photo", "Photo saved to: " + destination.getAbsolutePath());
+        } catch (IOException ex) {
+            DialogUtil.showError("Download Photo", ex.getMessage());
+        }
+    }
+
     private void configureTable() {
         referenceColumn.setCellValueFactory(cell -> new SimpleStringProperty(
                 cell.getValue().getReference().getValue()));
@@ -266,6 +246,9 @@ public class DocumentsController implements ModuleController {
         issuedByColumn
                 .setCellValueFactory(cell -> new SimpleStringProperty(optionalString(cell.getValue().getIssuedBy())));
         documentsTable.setItems(FXCollections.observableArrayList());
+        documentsTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> updateDownloadButtonState(newVal));
+        updateDownloadButtonState(null);
         TableCopyUtil.attachCopyContextMenu(documentsTable,
                 document -> document != null && document.getReference() != null
                         ? document.getReference().getValue()
@@ -387,64 +370,8 @@ public class DocumentsController implements ModuleController {
             DialogUtil.showWarning("From Requests", "Only approved requests can be issued from this tab.");
             return;
         }
-
-        Dialog<IssueDocumentInputDto> dialog = new Dialog<>();
-        dialog.setTitle("Issue Document from Request");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        TextField residentIdField = new TextField(selected.getResidentId().getValue());
-        residentIdField.setDisable(true);
-        ChoiceBox<DocumentType> documentTypeChoice = new ChoiceBox<>(
-                FXCollections.observableArrayList(DocumentType.values()));
-        documentTypeChoice.getSelectionModel().select(selected.getDocumentType());
-        documentTypeChoice.setDisable(true);
-        TextField purposeField = new TextField(optionalString(selected.getPurpose()));
-        DatePicker validUntilPicker = new DatePicker(selected.getRequestedValidUntil());
-        TextArea additionalInfoArea = new TextArea(optionalString(selected.getAdditionalInfo()));
-        additionalInfoArea.setPrefRowCount(3);
-
-        int row = 0;
-        grid.addRow(row++, new Label("Resident ID"), residentIdField);
-        grid.addRow(row++, new Label("Document Type"), documentTypeChoice);
-        grid.addRow(row++, new Label("Purpose"), purposeField);
-        grid.addRow(row++, new Label("Valid Until"), validUntilPicker);
-        grid.addRow(row, new Label("Additional Info"), additionalInfoArea);
-
-        dialog.getDialogPane().setContent(grid);
-        FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
-            if (purposeField.getText() == null || purposeField.getText().trim().isEmpty()) {
-                return Optional.of("Purpose is required.");
-            }
-            return Optional.empty();
-        }, "Issue Document");
-
-        dialog.setResultConverter(button -> {
-            if (button == ButtonType.OK) {
-                return new IssueDocumentInputDto(
-                        residentIdField.getText().trim(),
-                        documentTypeChoice.getValue(),
-                        purposeField.getText().trim(),
-                        validUntilPicker.getValue(),
-                        additionalInfoArea.getText(),
-                        selected.getId());
-            }
-            return null;
-        });
-
-        Optional<IssueDocumentInputDto> result = dialog.showAndWait();
-        result.ifPresent(input -> {
-            try {
-                String reference = container.getIssueDocumentUseCase().execute(input);
-                DialogUtil.showInfo("Issue Document", "Document issued with reference: " + reference);
-                refresh();
-            } catch (Exception ex) {
-                DialogUtil.showError("Issue Document", ex.getMessage());
-            }
-        });
+        Optional<IssueDocumentFormResult> result = showIssueDocumentDialog(selected);
+        result.ifPresent(this::processDocumentIssuance);
     }
 
     @FXML
@@ -470,5 +397,171 @@ public class DocumentsController implements ModuleController {
         }
         node.setVisible(visible);
         node.setManaged(visible);
+    }
+
+    private void updateDownloadButtonState(Document selected) {
+        if (downloadPhotoButton == null) {
+            return;
+        }
+        boolean disable = selected == null || !selected.hasPhoto()
+                || !DocumentPhotoStorage.photoExists(selected.getPhotoPath());
+        downloadPhotoButton.setDisable(disable);
+    }
+
+    private Optional<IssueDocumentFormResult> showIssueDocumentDialog(DocumentRequest request) {
+        Dialog<IssueDocumentFormResult> dialog = new Dialog<>();
+        dialog.setTitle(request == null ? "Issue Document" : "Issue Document from Request");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+
+        TextField residentIdField = new TextField(request == null ? "" : request.getResidentId().getValue());
+        residentIdField.setPromptText("Resident ID (e.g. BR-2024-0000000001)");
+        residentIdField.setDisable(request != null);
+
+        ChoiceBox<DocumentType> documentTypeChoice = new ChoiceBox<>(
+                FXCollections.observableArrayList(DocumentType.values()));
+        if (request != null) {
+            documentTypeChoice.getSelectionModel().select(request.getDocumentType());
+            documentTypeChoice.setDisable(true);
+        } else {
+            documentTypeChoice.getSelectionModel().selectFirst();
+        }
+
+        TextField purposeField = new TextField(request == null ? "" : orEmpty(request.getPurpose()));
+        DatePicker validUntilPicker = new DatePicker(request == null ? null : request.getRequestedValidUntil());
+        TextArea additionalInfoArea = new TextArea(request == null ? "" : orEmpty(request.getAdditionalInfo()));
+        additionalInfoArea.setPrefRowCount(3);
+
+        TextField photoField = new TextField();
+        photoField.setPromptText("No file selected");
+        photoField.setEditable(false);
+        photoField.setPrefWidth(220);
+        javafx.scene.control.Button browsePhotoButton = new javafx.scene.control.Button("Select Photo");
+        File[] selectedPhoto = new File[1];
+        browsePhotoButton.setOnAction(evt -> {
+            Window owner = dialog.getDialogPane().getScene() != null
+                    ? dialog.getDialogPane().getScene().getWindow()
+                    : null;
+            File chosen = chooseImageFile(owner);
+            if (chosen != null) {
+                selectedPhoto[0] = chosen;
+                photoField.setText(chosen.getName());
+            }
+        });
+        HBox photoInput = new HBox(8, photoField, browsePhotoButton);
+
+        int row = 0;
+        grid.addRow(row++, new Label("Resident ID"), residentIdField);
+        grid.addRow(row++, new Label("Document Type"), documentTypeChoice);
+        grid.addRow(row++, new Label("Purpose"), purposeField);
+        grid.addRow(row++, new Label("Valid Until"), validUntilPicker);
+        grid.addRow(row++, new Label("Additional Info"), additionalInfoArea);
+        grid.addRow(row, new Label("Document Photo"), photoInput);
+
+        dialog.getDialogPane().setContent(grid);
+        FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
+            if (request == null) {
+                if (residentIdField.getText() == null || residentIdField.getText().trim().isEmpty()) {
+                    return Optional.of("Resident ID is required.");
+                }
+            } else {
+                if (purposeField.getText() == null || purposeField.getText().trim().isEmpty()) {
+                    return Optional.of("Purpose is required.");
+                }
+            }
+            return Optional.empty();
+        }, dialog.getTitle());
+
+        dialog.setResultConverter(button -> {
+            if (button != ButtonType.OK) {
+                return null;
+            }
+            IssueDocumentInputDto input = new IssueDocumentInputDto(
+                    residentIdField.getText().trim(),
+                    documentTypeChoice.getValue(),
+                    request == null ? purposeField.getText() : purposeField.getText().trim(),
+                    validUntilPicker.getValue(),
+                    additionalInfoArea.getText(),
+                    request != null ? request.getId() : null);
+            return new IssueDocumentFormResult(input, selectedPhoto[0]);
+        });
+
+        return dialog.showAndWait();
+    }
+
+    private void processDocumentIssuance(IssueDocumentFormResult result) {
+        IssueDocumentInputDto baseInput = result.getInput();
+        String storedPhotoPath = null;
+        if (result.getPhotoFile() != null) {
+            try {
+                storedPhotoPath = DocumentPhotoStorage.savePhoto(result.getPhotoFile());
+            } catch (IOException ex) {
+                DialogUtil.showError("Issue Document", "Unable to store document photo: " + ex.getMessage());
+                return;
+            }
+        }
+
+        IssueDocumentInputDto payload = new IssueDocumentInputDto(
+                baseInput.getResidentId(),
+                baseInput.getDocumentType(),
+                baseInput.getPurpose(),
+                baseInput.getValidUntil(),
+                baseInput.getAdditionalInfo(),
+                baseInput.getRequestId(),
+                storedPhotoPath);
+
+        try {
+            String reference = container.getIssueDocumentUseCase().execute(payload);
+            DialogUtil.showInfo("Issue Document", "Document issued with reference: " + reference);
+            refresh();
+        } catch (Exception ex) {
+            DialogUtil.showError("Issue Document", ex.getMessage());
+        }
+    }
+
+    private File chooseImageFile(Window owner) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select Document Photo");
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+        return chooser.showOpenDialog(owner);
+    }
+
+    private File choosePhotoDestination(Document document) {
+        File source = DocumentPhotoStorage.resolvePhoto(document.getPhotoPath());
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save Document Photo");
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+        String extension = DocumentPhotoStorage.getExtension(source != null ? source.getName() : null)
+                .orElse(".png");
+        chooser.setInitialFileName(document.getReference().getValue() + extension);
+        Window owner = documentsTable.getScene() != null ? documentsTable.getScene().getWindow() : null;
+        return chooser.showSaveDialog(owner);
+    }
+
+    private String orEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static class IssueDocumentFormResult {
+        private final IssueDocumentInputDto input;
+        private final File photoFile;
+
+        IssueDocumentFormResult(IssueDocumentInputDto input, File photoFile) {
+            this.input = input;
+            this.photoFile = photoFile;
+        }
+
+        IssueDocumentInputDto getInput() {
+            return input;
+        }
+
+        File getPhotoFile() {
+            return photoFile;
+        }
     }
 }

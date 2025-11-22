@@ -89,6 +89,10 @@ public class IssueDocumentUseCase {
             document.setOriginRequestId(linkedRequest.getId());
         }
 
+        if (input.getPhotoPath() != null && !input.getPhotoPath().isBlank()) {
+            document.setPhotoPath(input.getPhotoPath());
+        }
+
         // Save document
         documentRepository.save(document);
 

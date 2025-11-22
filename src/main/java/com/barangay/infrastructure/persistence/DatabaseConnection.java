@@ -110,12 +110,14 @@ public class DatabaseConnection {
                                 "valid_until TEXT, " +
                                 "issued_by TEXT NOT NULL, " +
                                 "additional_info TEXT, " +
+                        "photo_path TEXT, " +
                                 "request_id TEXT, " +
                                 "created_at TEXT NOT NULL, " +
                                 "FOREIGN KEY (resident_id) REFERENCES residents(id), " +
                                 "FOREIGN KEY (request_id) REFERENCES document_requests(id))");
 
                 ensureDocumentsRequestColumn(stmt);
+                ensureDocumentsPhotoColumn(stmt);
 
                 // Voter Applications table
                 stmt.execute(
@@ -281,6 +283,17 @@ public class DatabaseConnection {
     private static void ensureDocumentsRequestColumn(Statement stmt) throws SQLException {
         try {
             stmt.execute("ALTER TABLE documents ADD COLUMN request_id TEXT");
+        } catch (SQLException e) {
+            String message = e.getMessage();
+            if (message == null || !message.toLowerCase().contains("duplicate column name")) {
+                throw e;
+            }
+        }
+    }
+
+    private static void ensureDocumentsPhotoColumn(Statement stmt) throws SQLException {
+        try {
+            stmt.execute("ALTER TABLE documents ADD COLUMN photo_path TEXT");
         } catch (SQLException e) {
             String message = e.getMessage();
             if (message == null || !message.toLowerCase().contains("duplicate column name")) {

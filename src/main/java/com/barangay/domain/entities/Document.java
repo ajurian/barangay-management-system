@@ -20,6 +20,7 @@ public class Document {
     private String additionalInfo; // JSON or key-value pairs for document-specific data
     private final LocalDateTime createdAt;
     private String originRequestId;
+    private String photoPath;
 
     public Document(DocumentReference reference, ResidentId residentId,
             DocumentType type, String purpose, LocalDate issuedDate,
@@ -79,12 +80,24 @@ public class Document {
         return originRequestId;
     }
 
+    public String getPhotoPath() {
+        return photoPath;
+    }
+
     public void setAdditionalInfo(String additionalInfo) {
         this.additionalInfo = additionalInfo;
     }
 
     public void setOriginRequestId(String originRequestId) {
         this.originRequestId = originRequestId;
+    }
+
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = photoPath;
+    }
+
+    public boolean hasPhoto() {
+        return photoPath != null && !photoPath.isBlank();
     }
 
     /**

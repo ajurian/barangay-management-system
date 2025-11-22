@@ -75,6 +75,8 @@
                             <children>
                                 <Button fx:id="issueDocumentButton" text="Issue Document"
                                     onAction="#handleIssueDocument" />
+                                <Button fx:id="downloadPhotoButton" text="Download Photo"
+                                    onAction="#handleDownloadPhoto" />
                                 <Button text="View Details" onAction="#handleViewDetails" />
                             </children>
                         </HBox>

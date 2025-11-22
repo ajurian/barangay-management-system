@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<TabPane xmlns="http://javafx.com/javafx/13"
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.barangay.presentation.controllers.DocumentsController">
+    <tabs>
+        <Tab text="Walk-in Issuance &amp; History">
+            <content>
+                <BorderPane>
+                    <top>
+                        <VBox spacing="8">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16" />
+                            </padding>
+                            <children>
+                                <HBox fx:id="filterBar" spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="Search" />
+                                        <TextField fx:id="searchField"
+                                            promptText="Reference, resident, or purpose"
+                                            prefWidth="240" />
+                                        <Label text="Type" />
+                                        <ChoiceBox fx:id="typeFilter" prefWidth="160" />
+                                        <Label text="Issued From" />
+                                        <DatePicker fx:id="startDatePicker" />
+                                        <Label text="To" />
+                                        <DatePicker fx:id="endDatePicker" />
+                                        <Button text="Apply" onAction="#handleApplyFilters" />
+                                        <Button text="Clear" onAction="#handleClearFilters" />
+                                    </children>
+                                </HBox>
+                                <Label fx:id="documentCountLabel" text="Showing 0 documents" />
+                                <Label fx:id="residentInfoLabel" text=""
+                                    visible="false" managed="false" wrapText="true"
+                                    styleClass="card-note" />
+                            </children>
+                        </VBox>
+                    </top>
+                    <center>
+                        <TableView fx:id="documentsTable" prefHeight="480">
+                            <columns>
+                                <TableColumn fx:id="referenceColumn" text="Reference"
+                                    prefWidth="140" />
+                                <TableColumn fx:id="residentColumn" text="Resident ID"
+                                    prefWidth="140" />
+                                <TableColumn fx:id="typeColumn" text="Type" prefWidth="140" />
+                                <TableColumn fx:id="purposeColumn" text="Purpose" prefWidth="240" />
+                                <TableColumn fx:id="issuedDateColumn" text="Issued Date"
+                                    prefWidth="140" />
+                                <TableColumn fx:id="validUntilColumn" text="Valid Until"
+                                    prefWidth="140" />
+                                <TableColumn fx:id="issuedByColumn" text="Issued By" prefWidth="140" />
+                            </columns>
+                        </TableView>
+                    </center>
+                    <bottom>
+                        <HBox spacing="12" alignment="CENTER_RIGHT">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16" />
+                            </padding>
+                            <children>
+                                <Button fx:id="issueDocumentButton" text="Issue Document"
+                                    onAction="#handleIssueDocument" />
+                                <Button text="View Details" onAction="#handleViewDetails" />
+                            </children>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </content>
+        </Tab>
+        <Tab fx:id="fromRequestsTab" text="From Requests">
+            <content>
+                <BorderPane>
+                    <top>
+                        <VBox spacing="8">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16" />
+                            </padding>
+                            <children>
+                                <Label text="Approved online requests waiting for issuance"
+                                    styleClass="section-title" />
+                                <Label fx:id="requestQueueLabel" text="Loading request queue..." />
+                            </children>
+                        </VBox>
+                    </top>
+                    <center>
+                        <TableView fx:id="requestQueueTable" prefHeight="420">
+                            <columns>
+                                <TableColumn fx:id="queueRequestIdColumn" text="Request ID"
+                                    prefWidth="150" />
+                                <TableColumn fx:id="queueResidentColumn" text="Resident"
+                                    prefWidth="180" />
+                                <TableColumn fx:id="queueTypeColumn" text="Document" prefWidth="160" />
+                                <TableColumn fx:id="queuePurposeColumn" text="Purpose"
+                                    prefWidth="240" />
+                                <TableColumn fx:id="queueStatusColumn" text="Status" prefWidth="140" />
+                            </columns>
+                        </TableView>
+                    </center>
+                    <bottom>
+                        <HBox spacing="12" alignment="CENTER_RIGHT">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16" />
+                            </padding>
+                            <children>
+                                <Button text="Refresh" onAction="#handleRefreshQueue" />
+                                <Button fx:id="issueFromRequestButton" text="Issue Selected"
+                                    onAction="#handleIssueFromRequest" />
+                            </children>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </content>
+        </Tab>
+    </tabs>
+</TabPane>

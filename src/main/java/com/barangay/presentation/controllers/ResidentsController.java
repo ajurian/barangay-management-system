@@ -1,6 +1,7 @@
 package com.barangay.presentation.controllers;
 
 import com.barangay.application.dto.RegisterResidentInputDto;
+import com.barangay.domain.entities.BarangayInfo;
 import com.barangay.domain.entities.CivilStatus;
 import com.barangay.domain.entities.EducationLevel;
 import com.barangay.domain.entities.Gender;
@@ -223,6 +224,14 @@ public class ResidentsController implements ModuleController {
     }
 
     private Optional<RegisterResidentInputDto> showResidentDialog(Resident existing) {
+        BarangayInfo barangayInfo;
+        try {
+            barangayInfo = container.getGetBarangayInfoUseCase().execute();
+        } catch (Exception ex) {
+            DialogUtil.showError("Resident Form", "Unable to load barangay information. Please configure it first.");
+            return Optional.empty();
+        }
+
         Dialog<RegisterResidentInputDto> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Register Resident" : "Update Resident");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -306,6 +315,10 @@ public class ResidentsController implements ModuleController {
         grid.addRow(row++, new Label("Income Bracket"), incomeChoice);
         grid.addRow(row++, new Label("Education"), educationChoice);
 
+        setAddressDefaults(barangayField, barangayInfo.getBarangayName());
+        setAddressDefaults(cityField, barangayInfo.getCity());
+        setAddressDefaults(provinceField, barangayInfo.getProvince());
+
         if (existing != null) {
             firstNameField.setText(existing.getFirstName());
             middleNameField.setText(existing.getMiddleName());
@@ -321,9 +334,6 @@ public class ResidentsController implements ModuleController {
                 houseNumberField.setText(existing.getAddress().getHouseNumber());
                 streetField.setText(existing.getAddress().getStreet());
                 purokField.setText(existing.getAddress().getPurok());
-                barangayField.setText(existing.getAddress().getBarangay());
-                cityField.setText(existing.getAddress().getCity());
-                provinceField.setText(existing.getAddress().getProvince());
             }
             occupationField.setText(existing.getOccupation());
             String existingEmployment = existing.getEmployment();
@@ -395,5 +405,11 @@ public class ResidentsController implements ModuleController {
         label.setManaged(visible);
         field.setVisible(visible);
         field.setManaged(visible);
+    }
+
+    private void setAddressDefaults(TextField field, String value) {
+        field.setText(value != null ? value : "");
+        field.setEditable(false);
+        field.setFocusTraversable(false);
     }
 }
