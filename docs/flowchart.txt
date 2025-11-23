@@ -16,11 +16,11 @@ Super Admin User Interface [color: red, icon: shield]
 
 // General Actions
 General Actions [color: black] {
-  View Dashboard Highlights [color: rosybrown, icon: dashboard]
+  View Dashboard Highlights [color: rosybrown, icon: layout]
   View Official List [color: olive, icon: users]
-  View Barangay Information [color: firebrick, icon: document]
+  View Barangay Information [color: firebrick, icon: file-text]
   View Profile [color: cornsilk, icon: user]
-  Change Password [color: cornsilk,, icon: lock]
+  Change Password [icon: lock]
   Logout [color: lightblue, icon: log-out]
   Exit [shape: oval, color: gray, icon: x]
 }
@@ -29,7 +29,7 @@ General Actions [color: black] {
 Resident Actions [color: green, icon: user] {
   View Documents [color: midnightblue, icon: file-text]
   View Document Requests [color: midnightblue, icon: file-text]
-  Request Document [color: midnightblue, icon: file-text]
+  Request Document [color: midnightblue, icon: file-plus]
   Submit Voter Application [color: peru, icon: edit]
   Resident View Application Details [color: peru, icon: eye, label: "View Application Details"]
   Resident Download Appointment Slip [color: peru, icon: download, label: "Download Appointment Slip"]
@@ -38,10 +38,10 @@ Resident Actions [color: green, icon: user] {
   Document Requests [color: midnightblue, icon: file-text] {
     Request Select Resident [color: midnightblue, icon: user, label: "Select Resident"]
     Request Select Document Type [shape: diamond, color: midnightblue, icon: file-text, label: "Select Document Type"]
-    Request Barangay ID [color: midnightblue, icon: file-text, label: "Barangay ID"]
+    Request Barangay ID [color: midnightblue, icon: id-card, label: "Barangay ID"]
     Request Barangay Clearance [color: midnightblue, icon: file-text, label: "Barangay Clearance"]
     Request Certificate of Recidency [color: midnightblue, icon: file-text, label: "Certificate of Recidency"]
-    Submit Request [color: midnightblue, icon: file-text, label: "Submit Request"]
+    Submit Request [color: midnightblue, icon: send, label: "Submit Request"]
   }
 
   // Resident Voter Application Module
@@ -54,46 +54,47 @@ Resident Actions [color: green, icon: user] {
 
 // Clerk Actions
 Clerk Actions [color: blue, icon: briefcase] {
-  Access Executive Dashboard [color: rosybrown, icon: dashboard]
+  Access Executive Dashboard [color: rosybrown, icon: layout]
   Manage Residents [color: darkgreen, icon: users]
-  Issue Documents [color: midnightblue, icon: file-text]
+  Issue Document [color: midnightblue, icon: file-text]
+  "View/Approve/Reject Document Requests" [color: midnightblue, icon: file-text]
   Manage Voter Applications [color: peru, icon: check-square]
 
   // Executive Dashboard
   Executive Dashboard [color: rosybrown, icon: Dashboard] {
     Number of Users [color: rosybrown, icon: users] {
-      Admins [color: rosybrown]
-      Clerks [color: rosybrown]
-      Residents [color: rosybrown]
+      Admins [color: rosybrown, icon: user]
+      Clerks [color: rosybrown, icon: user]
+      Residents [color: rosybrown, icon: user]
     }
 
     Number of Residents [color: rosybrown, icon: users] {
-      Total Residents [color: rosybrown]
-      Active Residents [color: rosybrown]
-      Male Residents [color: rosybrown]
-      Female Residents [color: rosybrown]
-      Registered Voters [color: rosybrown]
+      Total Residents [color: rosybrown, icon: users]
+      Active Residents [color: rosybrown, icon: user-check]
+      Male Residents [color: rosybrown, icon: user]
+      Female Residents [color: rosybrown, icon: user]
+      Registered Voters [color: rosybrown, icon: check-square]
     }
 
     Number of Issued Documents [color: rosybrown, icon: file-text] {
-      Total Documents [color: rosybrown]
-      Issued Today [color: rosybrown]
-      Issued This Month [color: rosybrown]
-      Barangay IDs [color: rosybrown]
-      Barangay Clearances [color: rosybrown]
-      Residency Certificates [color: rosybrown]
+      Total Documents [color: rosybrown, icon: file-text]
+      Issued Today [color: rosybrown, icon: calendar]
+      Issued This Month [color: rosybrown, icon: calendar]
+      Barangay IDs [color: rosybrown, icon: id-card]
+      Barangay Clearances [color: rosybrown, icon: file-text]
+      Residency Certificates [color: rosybrown, icon: file-text]
     }
 
     Number of Requested Documents [color: rosybrown, icon: file-text] {
-      RPending [label: "Pending", color: rosybrown]
-      Under Review [color: rosybrown]
-      Approved [color: rosybrown]
+      RPending [label: "Pending", color: rosybrown, icon: clock]
+      Under Review [color: rosybrown, icon: search]
+      Approved [color: rosybrown, icon: check]
     }
 
     Number of Voter Applications [color: rosybrown, icon: file-text] {
-      VPending [label:"Pending", color: rosybrown]
-      Scheduled [color: rosybrown]
-      Verified [color: rosybrown]
+      VPending [label: "Pending", color: rosybrown, icon: clock]
+      Scheduled [color: rosybrown, icon: calendar]
+      Verified [color: rosybrown, icon: check]
     }
   }
 
@@ -111,36 +112,37 @@ Clerk Actions [color: blue, icon: briefcase] {
     Issue Process [color: midnightblue] {
       Issue Select Resident [color: midnightblue, icon: user, label: "Select Resident"]
       Issue Select Document Type [shape: diamond, color: midnightblue, icon: file-text, label: "Select Document Type"]
-      Issue Barangay ID [color: midnightblue, icon: file-text, label: "Barangay ID"]
+      Issue Barangay ID [color: midnightblue, icon: id-card, label: "Barangay ID"]
       Issue Barangay Clearance [color: midnightblue, icon: file-text, label: "Barangay Clearance"]
       Issue Certificate of Recidency [color: midnightblue, icon: file-text, label: "Certificate of Recidency"]
-      Submit Issue [color: midnightblue, icon: file-text, label: "Submit Issue"]
+      Submit Issue [color: midnightblue, icon: send, label: "Submit Issue"]
     }
 
-    View History [color: midnightblue, icon: history]
-    Issue Document (request) [color: midnightblue, icon: file-text]
+    View History [color: midnightblue, icon: clock]
     Issue Document (walk-in) [color: midnightblue, icon: file-text]
+    Select from Approved Document Requests [color: midnightblue, icon: file-text]
+    Issue Document (request) [color: midnightblue, icon: file-text]
   }
 
   // Clerk - Voter Applications
   "Clerk - Voter Applications" [color: peru, icon: check-square] {
     Clerk View Application Details [color: peru, icon: eye, label: "View Application Details"]
     Clerk Download Appointment Slip [color: peru, icon: download, label: "Download Appointment Slip"]
-    "Approve/Reject Application" [color: peru, icon: document]
+    "Approve/Reject Application" [color: peru, icon: check-square]
     Schedule Verification [color: peru, icon: calendar]
-    "Input Date, Time & Venue" [color: peru, icon: input]
+    "Input Date, Time & Venue" [color: peru, icon: calendar]
     Generate Appointment Slip [color: peru, icon: printer]
-    Update Status [color: peru, icon: pencil]
+    Update Status [color: peru, icon: edit]
   }
 }
 
 // Admin Actions
 Admin Actions [color: purple, icon: shield] {
-  All Clerk Actions [color: blue]
-  Manage Users [color: cornsilk, icons: users]
+  All Clerk Actions [color: blue, icon: briefcase]
+  Manage Users [color: cornsilk, icons: users, icon: users]
   Manage Officials [color: olive, icon: users]
-  Update Barangay Information [color: firebrick, icon: pencil]
-  Update Dashboard Highlights [color: rosybrown, icon: pencil]
+  Update Barangay Information [color: firebrick, icon: file-text]
+  Update Dashboard Highlights [color: rosybrown, icon: layout]
 
   // User Management
   User Management [color: cornsilk, icons: users] {
@@ -154,15 +156,15 @@ Admin Actions [color: purple, icon: shield] {
   // Barangay Officials
   Barangay Officials [color: olive, icon: users] {
     Register Official [color: olive, icon: user-plus]
-    "Update Term/Photo" [color: olive, icon: pencil]
-    End Term [color: olive, icon: pencil]
+    "Update Term/Photo" [color: olive, icon: edit]
+    End Term [color: olive, icon: x]
   }
 }
 
 // Super Admin Actions
 Super Admin Actions [color: red, icon: shield] {
   All Admin Actions [color: purple, icon: shield]
-  Edit Profile (Linked Resident ID) [color: cornsilk, icon: pencil]
+  Edit Profile (Linked Resident ID) [color: cornsilk, icon: user]
 }
 
 // Data Persistence (SQLite)
@@ -243,9 +245,8 @@ Reactivate Resident > residents
 "View/Search Residents" < residents
 
 // Document Issuance
-Issue Documents > Document Issuance
+Issue Document > Document Issuance
 View History < documents
-Issue Document (request) < document_requests
 Issue Document (walk-in) > Issue Select Resident
 Issue Select Resident > Issue Select Document Type
 Issue Select Document Type > Issue Barangay ID
@@ -254,8 +255,13 @@ Issue Select Document Type > Issue Certificate of Recidency
 Issue Barangay ID > Submit Issue
 Issue Barangay Clearance > Submit Issue
 Issue Certificate of Recidency > Submit Issue
-Issue Document (request) > Submit Issue: Document Type & Resident from document request
+Select from Approved Document Requests < document_requests
+Select from Approved Document Requests > Issue Document (request)
+Issue Document (request) > Submit Issue
 Submit Issue > documents
+
+// Document Requests
+"View/Approve/Reject Document Requests" < document_requests
 
 // Clerk - Voter Applications
 Manage Voter Applications > "Clerk - Voter Applications"
