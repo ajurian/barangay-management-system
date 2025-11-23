@@ -254,3 +254,21 @@
   -fx-padding: 10 16 10 16;
   -fx-background-radius: 10;
 }
+
+.required-field-label {
+  font-weight: bold;
+  -fx-font-weight: bold;
+}
+
+.optional-field-label {
+  font-style: italic;
+  -fx-text-fill: #6c757d;
+  -fx-font-style: italic;
+}
+
+.required-asterisk {
+  color: #c0392b;
+  -fx-text-fill: #c0392b;
+  font-weight: bold;
+  -fx-font-weight: bold;
+}

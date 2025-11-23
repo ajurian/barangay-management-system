@@ -30,14 +30,25 @@
             managed="false" visible="false" />
           <Label text="Barangay Management System" styleClass="title" />
           <Label text="Sign In" styleClass="subtitle" />
+          <Label text="* Required field" styleClass="hint" />
           <VBox spacing="12" fillWidth="true">
             <children>
               <VBox spacing="6" fillWidth="true">
-                <Label text="Username" />
+                <Label text="Username" styleClass="required-field-label" contentDisplay="RIGHT"
+                  graphicTextGap="4">
+                  <graphic>
+                    <Label text="*" styleClass="required-asterisk" />
+                  </graphic>
+                </Label>
                 <TextField fx:id="usernameField" promptText="Enter username" maxWidth="Infinity" />
               </VBox>
               <VBox spacing="6" fillWidth="true">
-                <Label text="Password" />
+                <Label text="Password" styleClass="required-field-label" contentDisplay="RIGHT"
+                  graphicTextGap="4">
+                  <graphic>
+                    <Label text="*" styleClass="required-asterisk" />
+                  </graphic>
+                </Label>
                 <PasswordField fx:id="passwordField" promptText="Enter password" maxWidth="Infinity" />
               </VBox>
             </children>

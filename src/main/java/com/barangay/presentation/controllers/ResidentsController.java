@@ -10,6 +10,7 @@ import com.barangay.domain.entities.Resident;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import com.barangay.presentation.util.TableCopyUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -272,6 +273,7 @@ public class ResidentsController implements ModuleController {
         }
 
         Dialog<RegisterResidentInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle(existing == null ? "Register Resident" : "Update Resident");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -310,7 +312,7 @@ public class ResidentsController implements ModuleController {
         TextField occupationField = new TextField();
         occupationField.setPromptText("Occupation");
         ChoiceBox<String> employmentChoice = new ChoiceBox<>(FXCollections.observableArrayList(EMPLOYMENT_OPTIONS));
-        Label employmentOtherLabel = new Label("Specify Employment");
+        Label employmentOtherLabel = FormFieldIndicator.optionalLabel("Specify Employment");
         employmentOtherLabel.setVisible(false);
         employmentOtherLabel.setManaged(false);
         TextField employmentOtherField = new TextField();
@@ -323,6 +325,11 @@ public class ResidentsController implements ModuleController {
             if (!showCustom) {
                 employmentOtherField.clear();
             }
+            if (showCustom) {
+                FormFieldIndicator.markRequired(employmentOtherLabel);
+            } else {
+                FormFieldIndicator.markOptional(employmentOtherLabel);
+            }
         });
         ChoiceBox<IncomeBracket> incomeChoice = new ChoiceBox<>(
                 FXCollections.observableArrayList(IncomeBracket.values()));
@@ -332,27 +339,27 @@ public class ResidentsController implements ModuleController {
         birthPlaceField.setPromptText("Birth Place");
 
         int row = 0;
-        grid.addRow(row++, new Label("First Name"), firstNameField);
-        grid.addRow(row++, new Label("Middle Name"), middleNameField);
-        grid.addRow(row++, new Label("Last Name"), lastNameField);
-        grid.addRow(row++, new Label("Suffix"), suffixField);
-        grid.addRow(row++, new Label("Birth Date"), birthDatePicker);
-        grid.addRow(row++, new Label("Birth Place"), birthPlaceField);
-        grid.addRow(row++, new Label("Gender"), genderChoice);
-        grid.addRow(row++, new Label("Civil Status"), civilStatusChoice);
-        grid.addRow(row++, new Label("Nationality"), nationalityField);
-        grid.addRow(row++, new Label("Contact"), contactField);
-        grid.addRow(row++, new Label("Barangay"), barangayField);
-        grid.addRow(row++, new Label("City"), cityField);
-        grid.addRow(row++, new Label("Province"), provinceField);
-        grid.addRow(row++, new Label("House No."), houseNumberField);
-        grid.addRow(row++, new Label("Street"), streetField);
-        grid.addRow(row++, new Label("Purok"), purokField);
-        grid.addRow(row++, new Label("Occupation"), occupationField);
-        grid.addRow(row++, new Label("Employment"), employmentChoice);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("First Name"), firstNameField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Middle Name"), middleNameField);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Last Name"), lastNameField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Suffix"), suffixField);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Birth Date"), birthDatePicker);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Birth Place"), birthPlaceField);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Gender"), genderChoice);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Civil Status"), civilStatusChoice);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Nationality"), nationalityField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Contact"), contactField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Barangay"), barangayField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("City"), cityField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Province"), provinceField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("House No."), houseNumberField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Street"), streetField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Purok"), purokField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Occupation"), occupationField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Employment"), employmentChoice);
         grid.addRow(row++, employmentOtherLabel, employmentOtherField);
-        grid.addRow(row++, new Label("Income Bracket"), incomeChoice);
-        grid.addRow(row++, new Label("Education"), educationChoice);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Income Bracket"), incomeChoice);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Education"), educationChoice);
 
         setAddressDefaults(barangayField, barangayInfo.getBarangayName());
         setAddressDefaults(cityField, barangayInfo.getCity());
@@ -392,6 +399,12 @@ public class ResidentsController implements ModuleController {
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
+            if (firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) {
+                return Optional.of("First name is required.");
+            }
+            if (lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) {
+                return Optional.of("Last name is required.");
+            }
             if (birthDatePicker.getValue() == null || genderChoice.getValue() == null) {
                 return Optional.of("Birth date and gender are required.");
             }
@@ -462,7 +475,7 @@ public class ResidentsController implements ModuleController {
             deactivateButton.setDisable(disable);
         }
         if (reactivateButton != null) {
-            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            boolean disable = !hasSelection || (selected != null && selected.isActive());
             reactivateButton.setDisable(disable);
         }
     }

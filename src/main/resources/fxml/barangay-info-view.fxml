@@ -44,6 +44,8 @@
                     visible="false" managed="false" />
 
                 <Label fx:id="statusMessageLabel" text="" />
+                <Label text="All fields below are optional. Provide what you currently have."
+                    styleClass="card-note" />
 
                 <GridPane hgap="12" vgap="12">
                     <columnConstraints>
@@ -51,34 +53,42 @@
                         <ColumnConstraints hgrow="ALWAYS" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.rowIndex="0" text="Barangay Name" />
+                        <Label GridPane.rowIndex="0" text="Barangay Name (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="barangayNameField" GridPane.rowIndex="0"
                             GridPane.columnIndex="1" />
 
-                        <Label GridPane.rowIndex="1" text="City / Municipality" />
+                        <Label GridPane.rowIndex="1" text="City / Municipality (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="cityField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
 
-                        <Label GridPane.rowIndex="2" text="Province" />
+                        <Label GridPane.rowIndex="2" text="Province (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="provinceField" GridPane.rowIndex="2"
                             GridPane.columnIndex="1" />
 
-                        <Label GridPane.rowIndex="3" text="Region" />
+                        <Label GridPane.rowIndex="3" text="Region (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="regionField" GridPane.rowIndex="3"
                             GridPane.columnIndex="1" />
 
-                        <Label GridPane.rowIndex="4" text="Full Address" />
+                        <Label GridPane.rowIndex="4" text="Full Address (optional)"
+                            styleClass="optional-field-label" />
                         <TextArea fx:id="addressField" GridPane.rowIndex="4"
                             GridPane.columnIndex="1" prefRowCount="3" wrapText="true" />
 
-                        <Label GridPane.rowIndex="5" text="Contact Number" />
+                        <Label GridPane.rowIndex="5" text="Contact Number (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="contactField" GridPane.rowIndex="5"
                             GridPane.columnIndex="1" />
 
-                        <Label GridPane.rowIndex="6" text="Email" />
+                        <Label GridPane.rowIndex="6" text="Email (optional)"
+                            styleClass="optional-field-label" />
                         <TextField fx:id="emailField" GridPane.rowIndex="6"
                             GridPane.columnIndex="1" />
 
-                        <Label fx:id="sealLabel" GridPane.rowIndex="7" text="Seal Path" />
+                        <Label fx:id="sealLabel" GridPane.rowIndex="7" text="Seal Path (optional)"
+                            styleClass="optional-field-label" />
                         <HBox fx:id="sealFieldContainer" spacing="8" GridPane.rowIndex="7" GridPane.columnIndex="1">
                             <children>
                                 <TextField fx:id="sealField" HBox.hgrow="ALWAYS" />

@@ -8,6 +8,7 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -239,6 +240,7 @@ public class OfficialsController implements ModuleController {
         preview.setSmooth(true);
 
         Dialog<Void> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Official Photo");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.getDialogPane().setContent(preview);
@@ -359,6 +361,7 @@ public class OfficialsController implements ModuleController {
 
     private Optional<RegisterOfficialInputDto> showRegisterDialog() {
         Dialog<RegisterOfficialInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Register Official");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -375,10 +378,10 @@ public class OfficialsController implements ModuleController {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("Resident ID"), residentField);
-        grid.addRow(1, new Label("Position"), positionChoice);
-        grid.addRow(2, new Label("Term Start"), termStartPicker);
-        grid.addRow(3, new Label("Term End"), termEndPicker);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("Resident ID"), residentField);
+        grid.addRow(1, FormFieldIndicator.requiredLabel("Position"), positionChoice);
+        grid.addRow(2, FormFieldIndicator.requiredLabel("Term Start"), termStartPicker);
+        grid.addRow(3, FormFieldIndicator.requiredLabel("Term End"), termEndPicker);
         grid.add(currentCheck, 1, 4);
 
         dialog.getDialogPane().setContent(grid);
@@ -411,6 +414,7 @@ public class OfficialsController implements ModuleController {
 
     private Optional<UpdateOfficialInputDto> showUpdateDialog(BarangayOfficial official) {
         Dialog<UpdateOfficialInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Update Official");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -421,8 +425,8 @@ public class OfficialsController implements ModuleController {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("Term Start"), termStartPicker);
-        grid.addRow(1, new Label("Term End"), termEndPicker);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("Term Start"), termStartPicker);
+        grid.addRow(1, FormFieldIndicator.requiredLabel("Term End"), termEndPicker);
         grid.add(currentCheck, 1, 2);
 
         dialog.getDialogPane().setContent(grid);

@@ -1,9 +1,11 @@
 package com.barangay.presentation.util;
 
+import com.barangay.presentation.MainApp;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -12,6 +14,8 @@ import java.util.function.Supplier;
  * Utility helpers to keep form dialogs open until validation passes.
  */
 public final class FormDialogUtil {
+
+    private static final String APP_STYLESHEET = resolveAppStylesheet();
 
     private FormDialogUtil() {
     }
@@ -41,5 +45,23 @@ public final class FormDialogUtil {
                 DialogUtil.showError(effectiveTitle, error.get());
             }
         });
+    }
+
+    public static void applyAppStyles(Dialog<?> dialog) {
+        if (dialog == null || APP_STYLESHEET == null) {
+            return;
+        }
+        DialogPane pane = dialog.getDialogPane();
+        if (pane == null) {
+            return;
+        }
+        if (!pane.getStylesheets().contains(APP_STYLESHEET)) {
+            pane.getStylesheets().add(APP_STYLESHEET);
+        }
+    }
+
+    private static String resolveAppStylesheet() {
+        var resource = MainApp.class.getResource("/styles/app.css");
+        return resource != null ? resource.toExternalForm() : null;
     }
 }

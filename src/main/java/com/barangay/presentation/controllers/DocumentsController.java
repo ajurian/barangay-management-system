@@ -12,6 +12,7 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import com.barangay.presentation.util.TableCopyUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -460,6 +461,7 @@ public class DocumentsController implements ModuleController {
 
     private Optional<IssueDocumentFormResult> showIssueDocumentDialog(DocumentRequest request) {
         Dialog<IssueDocumentFormResult> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle(request == null ? "Issue Document" : "Issue Document from Request");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -503,13 +505,18 @@ public class DocumentsController implements ModuleController {
         });
         HBox photoInput = new HBox(8, photoField, browsePhotoButton);
 
+        Label purposeLabel = FormFieldIndicator.optionalLabel("Purpose");
+        if (request != null) {
+            FormFieldIndicator.markRequired(purposeLabel);
+        }
+
         int row = 0;
-        grid.addRow(row++, new Label("Resident ID"), residentIdField);
-        grid.addRow(row++, new Label("Document Type"), documentTypeChoice);
-        grid.addRow(row++, new Label("Purpose"), purposeField);
-        grid.addRow(row++, new Label("Valid Until"), validUntilPicker);
-        grid.addRow(row++, new Label("Additional Info"), additionalInfoArea);
-        grid.addRow(row, new Label("Document Photo"), photoInput);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Resident ID"), residentIdField);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Document Type"), documentTypeChoice);
+        grid.addRow(row++, purposeLabel, purposeField);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Valid Until"), validUntilPicker);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Additional Info"), additionalInfoArea);
+        grid.addRow(row, FormFieldIndicator.optionalLabel("Document Photo"), photoInput);
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {

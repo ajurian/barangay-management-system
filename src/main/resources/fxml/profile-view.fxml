@@ -50,8 +50,9 @@
                         <Label GridPane.rowIndex="1" GridPane.columnIndex="1" fx:id="roleLabel"
                             text="" />
 
-                        <Label GridPane.rowIndex="2" text="Linked Resident ID"
-                            fx:id="linkedResidentLabel" visible="false" managed="false" />
+                        <Label GridPane.rowIndex="2" text="Linked Resident ID (optional)"
+                            fx:id="linkedResidentLabel" visible="false" managed="false"
+                            styleClass="optional-field-label" />
                         <TextField GridPane.rowIndex="2" GridPane.columnIndex="1"
                             fx:id="residentIdField" promptText="BR-YYYY-XXXXXXXXXX" visible="false"
                             managed="false" />
@@ -123,6 +124,7 @@
                                 <String fx:value="section-title" />
                             </styleClass>
                         </Label>
+                        <Label text="All password fields are required." styleClass="hint" />
                         <Label fx:id="passwordHintLabel" wrapText="true" />
                         <GridPane hgap="12" vgap="12">
                             <columnConstraints>
@@ -130,15 +132,33 @@
                                 <ColumnConstraints hgrow="ALWAYS" />
                             </columnConstraints>
                             <children>
-                                <Label GridPane.rowIndex="0" text="Current Password" />
+                                <Label GridPane.rowIndex="0" text="Current Password"
+                                    styleClass="required-field-label" contentDisplay="RIGHT"
+                                    graphicTextGap="4">
+                                    <graphic>
+                                        <Label text="*" styleClass="required-asterisk" />
+                                    </graphic>
+                                </Label>
                                 <PasswordField GridPane.rowIndex="0" GridPane.columnIndex="1"
                                     fx:id="currentPasswordField" promptText="Enter current password" />
 
-                                <Label GridPane.rowIndex="1" text="New Password" />
+                                <Label GridPane.rowIndex="1" text="New Password"
+                                    styleClass="required-field-label" contentDisplay="RIGHT"
+                                    graphicTextGap="4">
+                                    <graphic>
+                                        <Label text="*" styleClass="required-asterisk" />
+                                    </graphic>
+                                </Label>
                                 <PasswordField GridPane.rowIndex="1" GridPane.columnIndex="1"
                                     fx:id="newPasswordField" promptText="Enter new password" />
 
-                                <Label GridPane.rowIndex="2" text="Confirm Password" />
+                                <Label GridPane.rowIndex="2" text="Confirm Password"
+                                    styleClass="required-field-label" contentDisplay="RIGHT"
+                                    graphicTextGap="4">
+                                    <graphic>
+                                        <Label text="*" styleClass="required-asterisk" />
+                                    </graphic>
+                                </Label>
                                 <PasswordField GridPane.rowIndex="2" GridPane.columnIndex="1"
                                     fx:id="confirmPasswordField" promptText="Confirm new password" />
                             </children>

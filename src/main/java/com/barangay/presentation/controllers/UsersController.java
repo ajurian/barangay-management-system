@@ -9,6 +9,7 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -108,6 +109,7 @@ public class UsersController implements ModuleController {
         PasswordValidator passwordValidator = new PasswordValidator();
 
         Dialog<CreateUserInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Create User Account");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -122,12 +124,12 @@ public class UsersController implements ModuleController {
         ChoiceBox<UserRole> roleChoice = new ChoiceBox<>(FXCollections.observableArrayList(allowedRoles));
         roleChoice.getSelectionModel().selectFirst();
         TextField residentLinkField = new TextField();
-        residentLinkField.setPromptText("Linked Resident ID (required)");
+        residentLinkField.setPromptText("Linked Resident ID");
 
-        grid.addRow(0, new Label("Username"), usernameField);
-        grid.addRow(1, new Label("Password"), passwordField);
-        grid.addRow(2, new Label("Role"), roleChoice);
-        grid.addRow(3, new Label("Resident ID"), residentLinkField);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("Username"), usernameField);
+        grid.addRow(1, FormFieldIndicator.requiredLabel("Password"), passwordField);
+        grid.addRow(2, FormFieldIndicator.requiredLabel("Role"), roleChoice);
+        grid.addRow(3, FormFieldIndicator.requiredLabel("Resident ID"), residentLinkField);
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
@@ -217,6 +219,7 @@ public class UsersController implements ModuleController {
         }
 
         Dialog<String> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Reset Password");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -229,7 +232,7 @@ public class UsersController implements ModuleController {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("New Password"), newPasswordField);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("New Password"), newPasswordField);
         grid.add(hint, 1, 1);
 
         dialog.getDialogPane().setContent(grid);
@@ -287,13 +290,14 @@ public class UsersController implements ModuleController {
         roleChoice.getSelectionModel().selectFirst();
 
         Dialog<UserRole> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Change User Role");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("New Role"), roleChoice);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("New Role"), roleChoice);
         dialog.getDialogPane().setContent(grid);
         dialog.setResultConverter(button -> button == ButtonType.OK ? roleChoice.getValue() : null);
 
@@ -371,7 +375,7 @@ public class UsersController implements ModuleController {
             deactivateButton.setDisable(disable);
         }
         if (reactivateButton != null) {
-            boolean disable = !hasSelection || (selected != null && !selected.isActive());
+            boolean disable = !hasSelection || (selected != null && selected.isActive());
             reactivateButton.setDisable(disable);
         }
         if (changeRoleButton != null) {

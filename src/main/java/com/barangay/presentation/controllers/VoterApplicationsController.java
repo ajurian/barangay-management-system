@@ -12,6 +12,7 @@ import com.barangay.domain.valueobjects.Address;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import com.barangay.presentation.util.TableCopyUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -377,6 +378,7 @@ public class VoterApplicationsController implements ModuleController {
                 .orElse(null);
 
         Dialog<ButtonType> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Voter Application Details");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.setHeaderText(String.format("%s · %s", selected.getId(), formatEnum(selected.getStatus())));
@@ -584,6 +586,7 @@ public class VoterApplicationsController implements ModuleController {
 
     private Optional<String> promptForNotes(String title) {
         Dialog<String> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle(title);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -598,6 +601,7 @@ public class VoterApplicationsController implements ModuleController {
 
     private Optional<ScheduleInput> promptForSchedule() {
         Dialog<ScheduleInput> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Schedule Verification");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -611,9 +615,9 @@ public class VoterApplicationsController implements ModuleController {
         javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("Date"), datePicker);
-        grid.addRow(1, new Label("Time"), timeField);
-        grid.addRow(2, new Label("Venue"), venueField);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("Date"), datePicker);
+        grid.addRow(1, FormFieldIndicator.requiredLabel("Time"), timeField);
+        grid.addRow(2, FormFieldIndicator.requiredLabel("Venue"), venueField);
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
@@ -647,6 +651,7 @@ public class VoterApplicationsController implements ModuleController {
 
     private Optional<SubmitVoterApplicationInputDto> showSubmitDialog() {
         Dialog<SubmitVoterApplicationInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Submit Voter Application");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -684,10 +689,10 @@ public class VoterApplicationsController implements ModuleController {
         javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.addRow(0, new Label("Application Type"), typeChoice);
-        grid.addRow(1, new Label("Valid ID - Front"), frontInput);
-        grid.addRow(2, new Label("Valid ID - Back"), backInput);
-        grid.addRow(3, new Label("Current Registration"), registrationDetailsArea);
+        grid.addRow(0, FormFieldIndicator.requiredLabel("Application Type"), typeChoice);
+        grid.addRow(1, FormFieldIndicator.requiredLabel("Valid ID - Front"), frontInput);
+        grid.addRow(2, FormFieldIndicator.requiredLabel("Valid ID - Back"), backInput);
+        grid.addRow(3, FormFieldIndicator.optionalLabel("Current Registration"), registrationDetailsArea);
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
@@ -875,6 +880,7 @@ public class VoterApplicationsController implements ModuleController {
             imageView.setFitWidth(520);
             imageView.setSmooth(true);
             Dialog<Void> preview = new Dialog<>();
+            FormDialogUtil.applyAppStyles(preview);
             preview.setTitle(title);
             preview.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
             preview.getDialogPane().setContent(imageView);

@@ -14,6 +14,7 @@ import com.barangay.domain.entities.UserRole;
 import com.barangay.infrastructure.config.DIContainer;
 import com.barangay.presentation.util.DialogUtil;
 import com.barangay.presentation.util.FormDialogUtil;
+import com.barangay.presentation.util.FormFieldIndicator;
 import com.barangay.presentation.util.TableCopyUtil;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -162,6 +163,7 @@ public class DocumentRequestsController implements ModuleController {
         }
 
         Dialog<SubmitDocumentRequestInputDto> dialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(dialog);
         dialog.setTitle("Request Document");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -184,11 +186,11 @@ public class DocumentRequestsController implements ModuleController {
         additionalInfoArea.setPrefRowCount(2);
 
         int row = 0;
-        grid.addRow(row++, new Label("Document Type"), typeChoice);
-        grid.addRow(row++, new Label("Purpose"), purposeArea);
-        grid.addRow(row++, new Label("Requested Valid Until"), validityPicker);
-        grid.addRow(row++, new Label("Notes"), notesArea);
-        grid.addRow(row, new Label("Additional Info"), additionalInfoArea);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Document Type"), typeChoice);
+        grid.addRow(row++, FormFieldIndicator.requiredLabel("Purpose"), purposeArea);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Requested Valid Until"), validityPicker);
+        grid.addRow(row++, FormFieldIndicator.optionalLabel("Notes"), notesArea);
+        grid.addRow(row, FormFieldIndicator.optionalLabel("Additional Info"), additionalInfoArea);
 
         dialog.getDialogPane().setContent(grid);
         FormDialogUtil.keepOpenOnValidationFailure(dialog, () -> {
@@ -284,6 +286,7 @@ public class DocumentRequestsController implements ModuleController {
         }
 
         Dialog<String> notesDialog = new Dialog<>();
+        FormDialogUtil.applyAppStyles(notesDialog);
         notesDialog.setTitle(title);
         notesDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         TextArea notesArea = new TextArea();
