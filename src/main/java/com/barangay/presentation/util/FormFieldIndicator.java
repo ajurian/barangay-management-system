@@ -12,6 +12,7 @@ public final class FormFieldIndicator {
     private static final String ASTERISK_NODE_KEY = "formFieldIndicator.asteriskNode";
     private static final String ASTERISK_TEXT = "*";
     private static final String OPTIONAL_SUFFIX = " (optional)";
+    private static final String READ_ONLY_SUFFIX = " (read-only)";
     private static final String REQUIRED_STYLE = "required-field-label";
     private static final String OPTIONAL_STYLE = "optional-field-label";
 
@@ -25,6 +26,10 @@ public final class FormFieldIndicator {
     public static Label optionalLabel(String text) {
         return createLabel(text, FieldState.OPTIONAL);
     }
+    
+    public static Label readOnlyLabel(String text) {
+        return createLabel(text, FieldState.READ_ONLY);
+    }
 
     public static void markRequired(Label label) {
         if (label != null) {
@@ -35,6 +40,12 @@ public final class FormFieldIndicator {
     public static void markOptional(Label label) {
         if (label != null) {
             updateState(label, FieldState.OPTIONAL);
+        }
+    }
+
+    public static void markReadOnly(Label label) {
+        if (label != null) {
+            updateState(label, FieldState.READ_ONLY);
         }
     }
 
@@ -57,8 +68,11 @@ public final class FormFieldIndicator {
             label.setGraphic(getOrCreateAsterisk(label));
             label.setContentDisplay(ContentDisplay.RIGHT);
             label.getStyleClass().add(REQUIRED_STYLE);
-        } else {
+        } else if (state == FieldState.OPTIONAL) {
             label.setText(baseText + OPTIONAL_SUFFIX);
+            label.getStyleClass().add(OPTIONAL_STYLE);
+        } else {
+            label.setText(baseText + READ_ONLY_SUFFIX);
             label.getStyleClass().add(OPTIONAL_STYLE);
         }
     }
@@ -77,6 +91,7 @@ public final class FormFieldIndicator {
 
     private enum FieldState {
         REQUIRED,
-        OPTIONAL
+        OPTIONAL,
+        READ_ONLY
     }
 }

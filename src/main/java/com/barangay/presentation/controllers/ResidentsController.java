@@ -349,9 +349,9 @@ public class ResidentsController implements ModuleController {
         grid.addRow(row++, FormFieldIndicator.optionalLabel("Civil Status"), civilStatusChoice);
         grid.addRow(row++, FormFieldIndicator.optionalLabel("Nationality"), nationalityField);
         grid.addRow(row++, FormFieldIndicator.optionalLabel("Contact"), contactField);
-        grid.addRow(row++, FormFieldIndicator.optionalLabel("Barangay"), barangayField);
-        grid.addRow(row++, FormFieldIndicator.optionalLabel("City"), cityField);
-        grid.addRow(row++, FormFieldIndicator.optionalLabel("Province"), provinceField);
+        grid.addRow(row++, FormFieldIndicator.readOnlyLabel("Barangay"), barangayField);
+        grid.addRow(row++, FormFieldIndicator.readOnlyLabel("City"), cityField);
+        grid.addRow(row++, FormFieldIndicator.readOnlyLabel("Province"), provinceField);
         grid.addRow(row++, FormFieldIndicator.optionalLabel("House No."), houseNumberField);
         grid.addRow(row++, FormFieldIndicator.optionalLabel("Street"), streetField);
         grid.addRow(row++, FormFieldIndicator.optionalLabel("Purok"), purokField);
