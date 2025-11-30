@@ -41,12 +41,19 @@ public class UpdateOfficialUseCase {
             throw new IllegalArgumentException("Term end date must be after term start date");
         }
 
-        // Check if setting as current while another is current for same position
+        // Check if setting as current while position has reached max
         if (input.isCurrent() && !official.isCurrent()) {
-            BarangayOfficial existingCurrent = officialRepository.findCurrentByPosition(official.getPosition());
-            if (existingCurrent != null && !existingCurrent.getOfficialId().equals(input.getOfficialId())) {
-                throw new IllegalArgumentException("Position " + official.getPosition() +
-                        " is already occupied by " + existingCurrent.getOfficialName());
+            int currentCount = officialRepository.countCurrentByPosition(official.getPosition());
+            int maxAllowed = official.getPosition().getMaxAllowed();
+            if (currentCount >= maxAllowed) {
+                if (maxAllowed == 1) {
+                    BarangayOfficial existingCurrent = officialRepository.findCurrentByPosition(official.getPosition());
+                    throw new IllegalArgumentException("Position " + official.getPosition() +
+                            " is already occupied by " + existingCurrent.getOfficialName());
+                } else {
+                    throw new IllegalArgumentException("Position " + official.getPosition() +
+                            " has reached maximum of " + maxAllowed + " officials");
+                }
             }
         }
 

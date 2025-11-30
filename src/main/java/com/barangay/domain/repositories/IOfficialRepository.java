@@ -26,9 +26,19 @@ public interface IOfficialRepository {
     List<BarangayOfficial> findCurrentOfficials();
 
     /**
-     * Find current official by position
+     * Find current official by position (returns first one found)
      */
     BarangayOfficial findCurrentByPosition(OfficialPosition position);
+
+    /**
+     * Find all current officials by position
+     */
+    List<BarangayOfficial> findCurrentOfficialsByPosition(OfficialPosition position);
+
+    /**
+     * Count current officials by position
+     */
+    int countCurrentByPosition(OfficialPosition position);
 
     /**
      * Find all officials by position (including past)

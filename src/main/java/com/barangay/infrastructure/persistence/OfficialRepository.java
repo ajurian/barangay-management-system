@@ -19,9 +19,9 @@ public class OfficialRepository implements IOfficialRepository {
     @Override
     public void save(BarangayOfficial official) {
         String sql = "INSERT OR REPLACE INTO barangay_officials " +
-            "(id, resident_id, official_name, position, term_start, term_end, is_current, " +
-            "photo_path, created_at, updated_at) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "(id, resident_id, official_name, position, term_start, term_end, is_current, " +
+                "photo_path, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -47,8 +47,8 @@ public class OfficialRepository implements IOfficialRepository {
     @Override
     public void update(BarangayOfficial official) {
         String sql = "UPDATE barangay_officials SET " +
-            "official_name = ?, position = ?, term_start = ?, term_end = ?, " +
-            "is_current = ?, photo_path = ?, updated_at = ? WHERE id = ?";
+                "official_name = ?, position = ?, term_start = ?, term_end = ?, " +
+                "is_current = ?, photo_path = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -132,6 +132,49 @@ public class OfficialRepository implements IOfficialRepository {
     }
 
     @Override
+    public List<BarangayOfficial> findCurrentOfficialsByPosition(OfficialPosition position) {
+        String sql = "SELECT * FROM barangay_officials WHERE position = ? AND is_current = 1 ORDER BY term_start DESC";
+        List<BarangayOfficial> officials = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, position.name());
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                officials.add(mapResultSetToOfficial(rs));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find current officials by position", e);
+        }
+
+        return officials;
+    }
+
+    @Override
+    public int countCurrentByPosition(OfficialPosition position) {
+        String sql = "SELECT COUNT(*) FROM barangay_officials WHERE position = ? AND is_current = 1";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, position.name());
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count current officials by position", e);
+        }
+
+        return 0;
+    }
+
+    @Override
     public List<BarangayOfficial> findByPosition(OfficialPosition position) {
         String sql = "SELECT * FROM barangay_officials WHERE position = ? ORDER BY term_start DESC";
         List<BarangayOfficial> officials = new ArrayList<>();
@@ -210,6 +253,6 @@ public class OfficialRepository implements IOfficialRepository {
         boolean isCurrent = rs.getInt("is_current") == 1;
         String photoPath = rs.getString("photo_path");
         return new BarangayOfficial(id, residentId, officialName, position,
-            termStart, termEnd, isCurrent, photoPath);
+                termStart, termEnd, isCurrent, photoPath);
     }
 }

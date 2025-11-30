@@ -48,12 +48,19 @@ public class RegisterOfficialUseCase {
             throw new IllegalArgumentException("Cannot assign official position to inactive resident");
         }
 
-        // Check if position is already occupied by current official
+        // Check if position has reached maximum allowed officials
         if (input.isCurrent()) {
-            BarangayOfficial existingCurrent = officialRepository.findCurrentByPosition(input.getPosition());
-            if (existingCurrent != null) {
-                throw new IllegalArgumentException("Position " + input.getPosition() +
-                        " is already occupied by " + existingCurrent.getOfficialName());
+            int currentCount = officialRepository.countCurrentByPosition(input.getPosition());
+            int maxAllowed = input.getPosition().getMaxAllowed();
+            if (currentCount >= maxAllowed) {
+                if (maxAllowed == 1) {
+                    BarangayOfficial existingCurrent = officialRepository.findCurrentByPosition(input.getPosition());
+                    throw new IllegalArgumentException("Position " + input.getPosition() +
+                            " is already occupied by " + existingCurrent.getOfficialName());
+                } else {
+                    throw new IllegalArgumentException("Position " + input.getPosition() +
+                            " has reached maximum of " + maxAllowed + " officials");
+                }
             }
         }
 
