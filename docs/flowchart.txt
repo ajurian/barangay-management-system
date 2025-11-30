@@ -36,7 +36,6 @@ Resident Actions [color: green, icon: user] {
 
   // Document Requests
   Document Requests [color: midnightblue, icon: file-text] {
-    Request Select Resident [color: midnightblue, icon: user, label: "Select Resident"]
     Request Select Document Type [shape: diamond, color: midnightblue, icon: file-text, label: "Select Document Type"]
     Request Barangay ID [color: midnightblue, icon: id-card, label: "Barangay ID"]
     Request Barangay Clearance [color: midnightblue, icon: file-text, label: "Barangay Clearance"]
@@ -212,7 +211,6 @@ Resident Download Appointment Slip < voter_applications
 
 // Document Requests
 Request Document > Document Requests
-Request Select Resident > Request Select Document Type
 Request Select Document Type > Request Barangay ID
 Request Select Document Type > Request Barangay Clearance
 Request Select Document Type > Request Certificate of Recidency
